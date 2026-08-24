@@ -1,1 +1,52 @@
 
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Josefina's Bakery</title>
+<style>
+:root{--b:#5b3826;--c:#f7f0e7;--p:#fffdf9;--l:#dfd2c6;--s:#eee2d5}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--c);color:#3b2a20}header{background:var(--b);color:white;padding:22px 18px;border-radius:0 0 24px 24px}main{max-width:850px;margin:auto;padding:16px}
+.card,section{background:var(--p);padding:15px;border-radius:18px;margin:12px 0}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--l);border-radius:10px;box-sizing:border-box;margin:5px 0 10px}
+button{padding:11px 14px;border:0;border-radius:12px;font-weight:700}.primary{background:var(--b);color:white}.secondary{background:white;border:1px solid var(--l);color:var(--b)}
+.item{padding:8px 0;border-bottom:1px solid #eee}.tag{display:inline-block;background:var(--s);padding:5px 8px;border-radius:8px;font-size:12px;margin:4px 3px 0 0}
+</style></head><body>
+<header><h1>Josefina's Bakery 🥖</h1><div>Panes, café y más · Horneamos con amor</div></header><main>
+<section><h2>Nuevo pedido</h2>
+<input id="client" placeholder="Cliente">
+<input id="date" type="date">
+<div id="items"></div>
+<button class="secondary" onclick="addItem()">➕ Agregar producto</button>
+<h3>Total: <span id="total">$0.00</span></h3>
+<div id="payments"></div>
+<button class="secondary" onclick="addPayment()">➕ Agregar pago</button>
+<div>Pagado: <b id="paid">$0.00</b> · Saldo: <b id="balance">$0.00</b></div>
+<select id="status"><option>Pendiente de elaborar</option><option>Pre-elaborado</option><option>Listo para entregar</option><option>Entregado</option><option>Finalizado</option></select>
+<textarea id="notes" placeholder="Notas / pedido especial"></textarea>
+<button class="primary" onclick="save()">Guardar pedido</button>
+</section>
+<section><h2>Pedidos</h2><div id="orders"></div></section>
+</main>
+<script>
+const products={{products|tojson}};
+let cart=[], pays=[];
+function money(n){return '$'+Number(n||0).toFixed(2)}
+function addItem(){cart.push({product:products[0][0],qty:1,unit_price:products[0][1]||0});render()}
+function addPayment(){pays.push({method:'Efectivo',amount:0});render()}
+function render(){
+ items.innerHTML=cart.map((x,i)=>`<div class=item><select onchange="cart[${i}].product=this.value;cart[${i}].unit_price=(products.find(p=>p[0]===this.value)||[0,0])[1]||0;render()">${products.map(p=>`<option ${p[0]===x.product?'selected':''}>${p[0]}${p[1]?' — '+money(p[1]):' — precio por confirmar'}</option>`).join('')}</select><input type=number min=1 value="${x.qty}" onchange="cart[${i}].qty=+this.value;render()"></div>`).join('');
+ payments.innerHTML=pays.map((p,i)=>`<div class=row><select onchange="pays[${i}].method=this.value"><option>Efectivo</option><option>Zelle</option><option>Cash App</option><option>Tarjeta</option><option>Otro</option></select><input type=number step=.01 min=0 placeholder=Monto value="${p.amount}" onchange="pays[${i}].amount=+this.value;render()"></div>`).join('');
+ const t=cart.reduce((a,x)=>a+x.qty*x.unit_price,0), pa=pays.reduce((a,x)=>a+x.amount,0);total.textContent=money(t);paid.textContent=money(pa);balance.textContent=money(Math.max(0,t-pa));
+}
+async function save(){
+ if(!client.value||!date.value||!cart.length)return alert('Agrega cliente, fecha y al menos un producto.');
+ if(cart.some(x=>!x.unit_price))return alert('Hay un producto sin precio confirmado.');
+ const r=await fetch('/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client:client.value,delivery_date:date.value,status:status.value,notes:notes.value,items:cart,payments:pays})});
+ if(r.ok)location.reload();else alert('No se pudo guardar.');
+}
+async function remove(id){if(confirm('¿Eliminar este pedido?')){await fetch('/orders/'+id,{method:'DELETE'});location.reload()}}
+cart.push({product:products[0][0],qty:1,unit_price:products[0][1]||0});
+render();
+orders.innerHTML=`{% for o in orders %}<div class=card><b>{{o.client}}</b> — {{'$%.2f'|format(o.total)}}<br>
+{% for i in o.items %}{{i.qty}} × {{i.product}} — {{'$%.2f'|format(i.qty*i.unit_price)}}<br>{% endfor %}
+<span class=tag>📅 {{o.delivery_date}}</span><span class=tag>📌 {{o.status}}</span><span class=tag>💰 Pagado {{'$%.2f'|format(o.paid)}} · Saldo {{'$%.2f'|format(o.balance)}}</span>
+{% if o.notes %}<br>📝 {{o.notes}}{% endif %}<br><button class=secondary onclick="remove({{o.id}})">Eliminar</button></div>{% endfor %}`;
+</script></body></html>
