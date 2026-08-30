@@ -186,15 +186,19 @@ function money(n){
 }
 
 
+/* =========================
+   AGREGAR PRODUCTO
+   ========================= */
+
 function addItem(){
 
   cart.push({
 
-    product: products[0][0],
+    product: '',
 
     qty: 1,
 
-    unit_price: products[0][1] || 0
+    unit_price: 0
 
   });
 
@@ -202,6 +206,10 @@ function addItem(){
 
 }
 
+
+/* =========================
+   AGREGAR PAGO
+   ========================= */
 
 function addPayment(){
 
@@ -218,32 +226,34 @@ function addPayment(){
 }
 
 
+/* =========================
+   MOSTRAR PEDIDO
+   ========================= */
+
 function render(){
 
   items.innerHTML = cart.map((x,i) => `
 
     <div class="item">
 
-      <select onchange="
+      <select onchange="changeProduct(${i}, this.value)">
 
-        cart[${i}].product=this.value;
-
-        cart[${i}].unit_price=
-        (products.find(p=>p[0]===this.value)||[0,0])[1]||0;
-
-        render()
-
-      ">
-
-      ${products.map(p => `
-
-        <option ${p[0]===x.product ? 'selected' : ''}>
-
-          ${p[0]} — ${money(p[1])}
-
+        <option value="" ${x.product === '' ? 'selected' : ''}>
+          Seleccione un producto
         </option>
 
-      `).join('')}
+        ${products.map(p => `
+
+          <option
+            value="${p[0]}"
+            ${p[0] === x.product ? 'selected' : ''}
+          >
+
+            ${p[0]} — ${money(p[1])}
+
+          </option>
+
+        `).join('')}
 
       </select>
 
@@ -255,9 +265,9 @@ function render(){
 
         onchange="
 
-          cart[${i}].qty=+this.value;
+          cart[${i}].qty = Math.max(1, Number(this.value) || 1);
 
-          render()
+          render();
 
         "
       >
@@ -267,29 +277,38 @@ function render(){
   `).join('');
 
 
+  /* =========================
+     PAGOS
+     ========================= */
+
   payments.innerHTML = pays.map((p,i) => `
 
     <div class="row">
 
       <select onchange="pays[${i}].method=this.value">
 
-        <option ${p.method==='Efectivo'?'selected':''}>
+        <option value="Efectivo"
+          ${p.method==='Efectivo'?'selected':''}>
           Efectivo
         </option>
 
-        <option ${p.method==='Zelle'?'selected':''}>
+        <option value="Zelle"
+          ${p.method==='Zelle'?'selected':''}>
           Zelle
         </option>
 
-        <option ${p.method==='Cash App'?'selected':''}>
+        <option value="Cash App"
+          ${p.method==='Cash App'?'selected':''}>
           Cash App
         </option>
 
-        <option ${p.method==='Tarjeta'?'selected':''}>
+        <option value="Tarjeta"
+          ${p.method==='Tarjeta'?'selected':''}>
           Tarjeta
         </option>
 
-        <option ${p.method==='Otro'?'selected':''}>
+        <option value="Otro"
+          ${p.method==='Otro'?'selected':''}>
           Otro
         </option>
 
@@ -305,9 +324,12 @@ function render(){
 
         onchange="
 
-          pays[${i}].amount=+this.value;
+          pays[${i].amount}=Math.max(
+            0,
+            Number(this.value) || 0
+          );
 
-          render()
+          render();
 
         "
       >
@@ -316,6 +338,10 @@ function render(){
 
   `).join('');
 
+
+  /* =========================
+     TOTALES
+     ========================= */
 
   const t = cart.reduce(
 
@@ -348,6 +374,43 @@ function render(){
 }
 
 
+/* =========================
+   CAMBIAR PRODUCTO
+   ========================= */
+
+function changeProduct(index, value){
+
+  const product = products.find(
+
+    p => p[0] === value
+
+  );
+
+
+  if(!product){
+
+    cart[index].product = '';
+
+    cart[index].unit_price = 0;
+
+  }else{
+
+    cart[index].product = product[0];
+
+    cart[index].unit_price = Number(product[1]) || 0;
+
+  }
+
+
+  render();
+
+}
+
+
+/* =========================
+   GUARDAR PEDIDO
+   ========================= */
+
 async function save(){
 
   if(
@@ -363,6 +426,24 @@ async function save(){
     return alert(
 
       'Agrega cliente, fecha y al menos un producto.'
+
+    );
+
+  }
+
+
+  const invalidProduct = cart.some(
+
+    x => !x.product
+
+  );
+
+
+  if(invalidProduct){
+
+    return alert(
+
+      'Selecciona un producto antes de guardar el pedido.'
 
     );
 
@@ -417,6 +498,10 @@ async function save(){
 }
 
 
+/* =========================
+   ELIMINAR PEDIDO
+   ========================= */
+
 async function remove(id){
 
   if(confirm('¿Eliminar este pedido?')){
@@ -440,19 +525,24 @@ async function remove(id){
 }
 
 
-cart.push({
+/* =========================
+   INICIO
+   ========================= */
 
-  product: products[0][0],
+/*
+   IMPORTANTE:
+   NO agregamos ningún producto
+   automáticamente.
 
-  qty: 1,
-
-  unit_price: products[0][1] || 0
-
-});
-
+   El pedido comienza vacío.
+*/
 
 render();
 
+
+/* =========================
+   MOSTRAR PEDIDOS
+   ========================= */
 
 orders.innerHTML = `
 
