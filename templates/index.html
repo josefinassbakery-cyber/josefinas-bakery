@@ -573,7 +573,7 @@ function emptyProduct(){
    ========================= */
 
 window.promotions =
-  {{promotions|tojson}};
+  {{promotions|default([], true)|tojson}};
 
 
 function changePromotion(index, promotionId){
