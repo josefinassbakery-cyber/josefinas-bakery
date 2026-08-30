@@ -1,867 +1,1964 @@
-from flask import Flask, render_template, request, jsonify
-import sqlite3
-import os
-from datetime import datetime
+<!doctype html>
+<html lang="es">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1"
+>
+
+<title>Josefina's Bakery</title>
 
 
-BASE = os.path.dirname(os.path.abspath(__file__))
-DB = os.path.join(BASE, "josefinas_bakery.db")
+<style>
 
-app = Flask(__name__)
+:root{
 
+  --b:#5b3826;
+  --c:#f7f0e7;
+  --p:#fffdf9;
+  --l:#dfd2c6;
+  --s:#eee2d5;
 
-# ============================================================
-# PRODUCTOS
-# ============================================================
-
-PRODUCTS = [
-
-    # =========================
-    # PANES SALADOS
-    # =========================
-
-    ("Pan de Jamón 16 pulgadas", 34.00),
-    ("Pan de Jamón con queso crema", 35.00),
-    ("Mini Pan de Jamón", 10.00),
-    ("Mini Pan de Jamón con queso crema", 12.00),
-    ("Mini Lunch (jamón y queso)", 6.50),
-    ("Cachitos de jamón y bacon", 4.50),
-
-    ("Pan francés", 1.00),
-    ("Pan Canilla", 2.50),
-    ("Pan Campesino", 3.00),
-
-    ("Pan de queso pequeño 7.5 pulgadas", 10.00),
-    ("Pan de queso mediano 12 pulgadas", 15.00),
-    ("Pan de queso grande 16 pulgadas", 20.00),
-    ("Pack 6 mini panes de queso", 10.00),
-
-    ("Pan Sandwich tipo Subway", 8.00),
+}
 
 
-    # =========================
-    # EXTRAS PANES DE QUESO
-    # =========================
+body{
 
-    ("Extra Queso + Guayaba", 1.00),
-    ("Extra Queso + Tocineta", 1.00),
-    ("Extra Guayaba + Queso", 1.00),
-    ("Extra Triple relleno", 2.00),
+  margin:0;
 
+  font-family:system-ui,sans-serif;
 
-    # =========================
-    # PANES DULCES
-    # =========================
+  background:var(--c);
 
-    ("Dulce Piñita (6)", 8.50),
-    ("Pack mini Pan de Leche (9)", 8.00),
-    ("Pan de Guayaba", 4.50),
-    ("Pan de Guayaba Grande", 16.00),
-    ("Golfeado Grande", 4.50),
-    ("Pack 6 Golfeados", 10.00),
+  color:#3b2a20;
 
-    ("Pan de Queso Dulce", 2.00),
-    ("Corazón de Piña (6)", 10.00),
-    ("Piña & Coco (6)", 10.00),
-    ("Pan Dulce de Coco (6)", 10.00),
+}
 
 
-    # =========================
-    # CINNAMON ROLLS
-    # =========================
+header{
 
-    ("Cinnamon Roll Tradicional", 4.50),
-    ("Cinnamon Rolls Pack de 2", 8.00),
-    ("Cinnamon Rolls Pack de 8", 16.00),
+  background:var(--b);
 
+  color:white;
 
-    # =========================
-    # LEMON ROLLS
-    # =========================
+  padding:22px 18px;
 
-    ("Lemon Roll Tradicional", 4.50),
-    ("Lemon Rolls Pack de 2", 8.00),
-    ("Lemon Rolls Pack de 8", 16.00),
+  border-radius:0 0 24px 24px;
+
+}
 
 
-    # =========================
-    # TOPPINGS
-    # =========================
+main{
 
-    ("Topping Nutella", 2.00),
-    ("Topping Oreo", 2.00),
-    ("Topping Caramelo", 2.00),
-    ("Topping Dulce de leche", 2.00),
-    ("Topping Fresa", 2.00),
-    ("Topping Chocolate", 2.00),
+  max-width:850px;
 
+  margin:auto;
 
-    # =========================
-    # OTROS PRODUCTOS
-    # =========================
+  padding:16px;
 
-    ("Panelitas San Joaquín (Pack 5 unidades)", 1.00),
-    ("Pastelito individual (Incluye salsa)", 3.00),
-    ("25 Mini Pastelitos surtidos (Incluye salsa)", 24.00),
-    ("50 Mini Pastelitos surtidos (Incluye salsa)", 47.00),
-    ("Arepitas de Yuca - Empaque 10 unidades", 12.00),
+}
 
 
-    # =========================
-    # PANES ARTESANALES
-    # =========================
+.card,
+section{
 
-    ("Pan Andino Regular", 14.00),
-    ("Pan Andino con Talvina (Masa Madre)", 15.00),
-    ("Pan Trenza", 15.00)
-]
+  background:var(--p);
+
+  padding:15px;
+
+  border-radius:18px;
+
+  margin:12px 0;
+
+}
 
 
-# ============================================================
-# PROMOCIONES
-# ============================================================
+.row{
 
-PROMOTIONS = [
+  display:grid;
 
-    {
-        "id": "promo_pan_queso_grande",
-        "name": "Promoción Pan de Queso Grande",
-        "price": 20.00,
-        "description": (
-            "Pan de queso grande de 16 pulgadas "
-            "+ 1 Piñita gratis"
-        ),
-        "includes": "1 Pan de queso grande 16 pulgadas + 1 Piñita gratis",
-        "active": True
+  grid-template-columns:1fr 1fr;
+
+  gap:10px;
+
+}
+
+
+input,
+select,
+textarea{
+
+  width:100%;
+
+  padding:11px;
+
+  border:1px solid var(--l);
+
+  border-radius:10px;
+
+  box-sizing:border-box;
+
+  margin:5px 0 10px;
+
+}
+
+
+button{
+
+  padding:11px 14px;
+
+  border:0;
+
+  border-radius:12px;
+
+  font-weight:700;
+
+  cursor:pointer;
+
+}
+
+
+.primary{
+
+  background:var(--b);
+
+  color:white;
+
+}
+
+
+.secondary{
+
+  background:white;
+
+  border:1px solid var(--l);
+
+  color:var(--b);
+
+}
+
+
+.danger{
+
+  background:#f8dddd;
+
+  color:#8b2020;
+
+  border:1px solid #e7bcbc;
+
+}
+
+
+.item{
+
+  padding:12px 0;
+
+  border-bottom:1px solid #eee;
+
+}
+
+
+.item-actions{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+
+}
+
+
+.subtotal{
+
+  font-weight:700;
+
+  margin:4px 0 8px;
+
+}
+
+
+.products-summary{
+
+  background:var(--s);
+
+  padding:12px;
+
+  border-radius:12px;
+
+  margin:12px 0;
+
+}
+
+
+.products-summary-title{
+
+  font-weight:800;
+
+  margin-bottom:6px;
+
+}
+
+
+.promotion-info{
+
+  background:#f7efe5;
+
+  border:1px solid var(--l);
+
+  padding:8px 10px;
+
+  border-radius:10px;
+
+  font-size:13px;
+
+  margin:2px 0 8px;
+
+}
+
+
+.payment{
+
+  padding:10px 0;
+
+  border-bottom:1px solid #eee;
+
+}
+
+
+.payment-actions{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+}
+
+
+.tag{
+
+  display:inline-block;
+
+  background:var(--s);
+
+  padding:5px 8px;
+
+  border-radius:8px;
+
+  font-size:12px;
+
+  margin:4px 3px 0 0;
+
+}
+
+
+.payment-status{
+
+  display:inline-block;
+
+  padding:6px 10px;
+
+  border-radius:9px;
+
+  background:var(--s);
+
+  font-weight:700;
+
+  font-size:13px;
+
+  margin-top:8px;
+
+}
+
+
+.order-buttons{
+
+  display:flex;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+
+  margin-top:12px;
+
+}
+
+
+@media(max-width:600px){
+
+  .row{
+
+    grid-template-columns:1fr;
+
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+  <h1>Josefina's Bakery 🥖</h1>
+
+  <div>
+    Panes, café y más · Horneamos con amor
+  </div>
+
+</header>
+
+
+<main>
+
+
+<section>
+
+<h2 id="formTitle">
+  Nuevo pedido
+</h2>
+
+
+<input
+  id="client"
+  placeholder="Cliente"
+>
+
+
+<input
+  id="date"
+  type="date"
+>
+
+
+<label>
+  Productos
+</label>
+
+<div id="items"></div>
+
+
+<button
+  class="secondary"
+  onclick="addItem()"
+>
+
+  ➕ Agregar producto
+
+</button>
+
+
+<div class="products-summary">
+
+  <div class="products-summary-title">
+    Resumen de productos
+  </div>
+
+  <div id="productSummary">
+    Sin productos
+  </div>
+
+  <div style="margin-top:10px">
+
+    <b>
+      Subtotal productos:
+    </b>
+
+    <span id="productsSubtotal">$0.00</span>
+
+  </div>
+
+</div>
+
+
+<h3>
+
+  Total:
+  <span id="total">$0.00</span>
+
+</h3>
+
+
+<h3>
+  Pagos
+</h3>
+
+
+<div id="payments"></div>
+
+
+<button
+  class="secondary"
+  onclick="addPayment()"
+>
+
+  ➕ Agregar pago
+
+</button>
+
+
+<div>
+
+  Pagado:
+  <b id="paid">$0.00</b>
+
+  ·
+
+  Saldo:
+  <b id="balance">$0.00</b>
+
+</div>
+
+
+<div>
+
+  Estado del pago:
+  <b id="paymentStatus">
+    No pagado
+  </b>
+
+</div>
+
+
+<br>
+
+
+<label>
+  Estado del pedido
+</label>
+
+
+<select
+  id="status"
+  onchange="statusChanged()"
+>
+
+  <option>
+    Pendiente de elaborar
+  </option>
+
+  <option>
+    Pre-elaborado
+  </option>
+
+  <option>
+    Listo para entregar
+  </option>
+
+  <option>
+    Entregado
+  </option>
+
+  <option>
+    Cancelado
+  </option>
+
+</select>
+
+
+<textarea
+  id="notes"
+  placeholder="Notas / pedido especial"
+></textarea>
+
+
+<button
+  id="saveButton"
+  class="primary"
+  onclick="save()"
+>
+
+  Guardar pedido
+
+</button>
+
+
+<button
+  id="cancelEditButton"
+  class="secondary"
+  onclick="cancelEdit()"
+  style="display:none;margin-left:6px"
+>
+
+  Cancelar edición
+
+</button>
+
+
+</section>
+
+
+
+<section>
+
+<h2>
+  Pedidos
+</h2>
+
+
+<div id="orders"></div>
+
+
+</section>
+
+
+</main>
+
+
+
+<script>
+
+
+/* =========================
+   PRODUCTOS
+   ========================= */
+
+const products = {{products|tojson}};
+
+
+/* =========================
+   VARIABLES
+   ========================= */
+
+let cart = [];
+
+let pays = [];
+
+let editingOrderId = null;
+
+
+/* =========================
+   DINERO
+   ========================= */
+
+function money(n){
+
+  return '$' +
+    Number(n || 0).toFixed(2);
+
+}
+
+
+/* =========================
+   PRODUCTO VACÍO
+   ========================= */
+
+function emptyProduct(){
+
+  return {
+
+    product:'',
+    qty:1,
+    unit_price:0
+
+  };
+
+}
+
+
+/* =========================
+   PROMOCIONES
+   ========================= */
+
+window.promotions =
+  {{promotions|tojson}};
+
+
+function changePromotion(index, promotionId){
+
+  if(!promotionId){
+
+    cart[index].promotion_id = '';
+
+    cart[index].promotion_name = '';
+
+    cart[index].promotion_description = '';
+
+    render();
+
+    return;
+
+  }
+
+
+  const promo =
+    (window.promotions || []).find(
+      p => p.id === promotionId
+    );
+
+
+  if(!promo){
+
+    return;
+
+  }
+
+
+  cart[index].product =
+    promo.name;
+
+  cart[index].qty =
+    1;
+
+  cart[index].unit_price =
+    Number(promo.price) || 0;
+
+  cart[index].promotion_id =
+    promo.id;
+
+  cart[index].promotion_name =
+    promo.name;
+
+  cart[index].promotion_description =
+    promo.includes ||
+    promo.description ||
+    '';
+
+
+  render();
+
+}
+
+
+/* =========================
+   AGREGAR PRODUCTO
+   ========================= */
+
+function addItem(){
+
+  cart.push(
+    emptyProduct()
+  );
+
+  render();
+
+}
+
+
+/* =========================
+   ELIMINAR PRODUCTO
+   ========================= */
+
+function deleteItem(index){
+
+  cart.splice(index,1);
+
+  /*
+     Si eliminamos todos los productos
+     dejamos una línea vacía para poder
+     continuar agregando.
+  */
+
+  if(cart.length === 0){
+
+    cart.push(
+      emptyProduct()
+    );
+
+  }
+
+  render();
+
+}
+
+
+/* =========================
+   CAMBIAR PRODUCTO
+   ========================= */
+
+function changeProduct(index,value){
+
+  const selectedProduct =
+    products.find(
+      p => p[0] === value
+    );
+
+
+  if(selectedProduct){
+
+    cart[index].product =
+      selectedProduct[0];
+
+    cart[index].unit_price =
+      Number(selectedProduct[1]) || 0;
+
+    cart[index].promotion_id = '';
+
+    cart[index].promotion_name = '';
+
+    cart[index].promotion_description = '';
+
+  }else{
+
+    cart[index].product = '';
+
+    cart[index].unit_price = 0;
+
+  }
+
+
+  render();
+
+}
+
+
+/* =========================
+   CAMBIAR CANTIDAD
+   ========================= */
+
+function changeQty(index,value){
+
+  cart[index].qty =
+    Math.max(
+      1,
+      Number(value) || 1
+    );
+
+  render();
+
+}
+
+
+/* =========================
+   AGREGAR PAGO
+   ========================= */
+
+function addPayment(){
+
+  pays.push({
+
+    method:'Efectivo',
+
+    amount:0
+
+  });
+
+  render();
+
+}
+
+
+/* =========================
+   ELIMINAR PAGO
+   ========================= */
+
+function deletePayment(index){
+
+  pays.splice(index,1);
+
+  render();
+
+}
+
+
+/* =========================
+   CAMBIAR ESTADO
+   ========================= */
+
+function statusChanged(){
+
+  const status =
+    document.getElementById('status').value;
+
+
+  if(status === 'Cancelado'){
+
+    const confirmed = confirm(
+      'Al cancelar este pedido, los productos y pagos quedarán en $0.00. ¿Deseas continuar?'
+    );
+
+
+    if(confirmed){
+
+      cart = [];
+
+      pays = [];
+
+      render();
+
+    }else{
+
+      document.getElementById('status').value =
+        'Pendiente de elaborar';
+
     }
 
-]
+  }
 
+}
 
-# ============================================================
-# BASE DE DATOS
-# ============================================================
 
-def db():
+/* =========================
+   MOSTRAR PEDIDO
+   ========================= */
 
-    c = sqlite3.connect(DB)
+function render(){
 
-    c.row_factory = sqlite3.Row
+  const itemsContainer =
+    document.getElementById('items');
 
-    return c
 
+  itemsContainer.innerHTML =
+    cart.map((x,i) => {
 
-# ============================================================
-# INICIALIZAR BASE DE DATOS
-# ============================================================
+      let productOptions = `
 
-def init():
+        <option value=""
+          ${x.product === ''
+            ? 'selected'
+            : ''}
+        >
 
-    c = db()
+          Seleccione un producto
 
-    c.executescript("""
+        </option>
 
-    CREATE TABLE IF NOT EXISTS orders(
+      `;
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        client TEXT NOT NULL,
+      products.forEach(p => {
 
-        delivery_date TEXT NOT NULL,
+        const selected =
+          p[0] === x.product
+            ? 'selected'
+            : '';
 
-        status TEXT NOT NULL DEFAULT 'Pendiente de elaborar',
 
-        notes TEXT DEFAULT '',
+        productOptions += `
 
-        created_at TEXT NOT NULL
+          <option
+            value="${p[0]}"
+            ${selected}
+          >
 
-    );
+            ${p[0]} — ${money(p[1])}
 
+          </option>
 
-    CREATE TABLE IF NOT EXISTS items(
+        `;
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+      });
 
-        order_id INTEGER NOT NULL,
 
-        product TEXT NOT NULL,
+      /* =========================
+         PROMOCIONES
+         ========================= */
 
-        qty INTEGER NOT NULL,
+      let promotionOptions = `
 
-        unit_price REAL NOT NULL,
+        <option value=""
+          ${x.promotion_id
+            ? ''
+            : 'selected'}
+        >
 
-        FOREIGN KEY(order_id)
+          Seleccione una promoción
 
-        REFERENCES orders(id)
+        </option>
 
-        ON DELETE CASCADE
+      `;
 
-    );
 
+      (window.promotions || []).forEach(promo => {
 
-    CREATE TABLE IF NOT EXISTS payments(
+        const selected =
+          x.promotion_id === promo.id
+            ? 'selected'
+            : '';
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        order_id INTEGER NOT NULL,
+        promotionOptions += `
 
-        method TEXT NOT NULL,
+          <option
+            value="${promo.id}"
+            ${selected}
+          >
 
-        amount REAL NOT NULL,
+            ${promo.name} — ${money(promo.price)}
 
-        FOREIGN KEY(order_id)
+          </option>
 
-        REFERENCES orders(id)
+        `;
 
-        ON DELETE CASCADE
+      });
 
-    );
 
-    """)
+      const subtotal =
+        Number(x.qty || 0) *
+        Number(x.unit_price || 0);
 
-    c.commit()
 
-    c.close()
+      const promotionInfo =
+        x.promotion_id &&
+        x.promotion_description
+          ? `
+            <div class="promotion-info">
 
+              🎁
+              ${x.promotion_description}
 
-# ============================================================
-# INICIAR BASE DE DATOS
-# ============================================================
+            </div>
+          `
+          : '';
 
-init()
 
+      return `
 
-# ============================================================
-# PÁGINA PRINCIPAL
-# ============================================================
+        <div class="item">
 
-@app.route("/")
-def home():
+          <label>
+            Producto
+          </label>
 
-    c = db()
+          <select
+            onchange="
+              changeProduct(
+                ${i},
+                this.value
+              )
+            "
+          >
 
-    orders = c.execute(
+            ${productOptions}
 
-        """
-        SELECT *
-        FROM orders
-        ORDER BY delivery_date, id DESC
-        """
+          </select>
 
-    ).fetchall()
 
+          ${
+            (window.promotions || []).length
+              ? `
+                <select
+                  onchange="
+                    changePromotion(
+                      ${i},
+                      this.value
+                    )
+                  "
+                >
 
-    result = []
+                  ${promotionOptions}
 
+                </select>
+              `
+              : ''
+          }
 
-    for o in orders:
 
-        items = c.execute(
+          ${promotionInfo}
 
-            """
-            SELECT *
-            FROM items
-            WHERE order_id=?
-            """,
 
-            (o["id"],)
+          <div class="item-actions">
 
-        ).fetchall()
+            <label>
+              Cantidad:
+            </label>
 
-
-        pays = c.execute(
-
-            """
-            SELECT *
-            FROM payments
-            WHERE order_id=?
-            """,
-
-            (o["id"],)
-
-        ).fetchall()
-
-
-        total = sum(
-
-            i["qty"] * i["unit_price"]
-
-            for i in items
-
-        )
-
-
-        paid = sum(
-
-            p["amount"]
-
-            for p in pays
-
-        )
-
-
-        result.append(
-
-            dict(
-
-                o,
-
-                items=[
-                    dict(i)
-                    for i in items
-                ],
-
-                payments=[
-                    dict(p)
-                    for p in pays
-                ],
-
-                total=total,
-
-                paid=paid,
-
-                balance=max(
-                    0,
-                    total - paid
+            <input
+              type="number"
+              min="1"
+              value="${x.qty}"
+              style="max-width:120px"
+              onchange="
+                changeQty(
+                  ${i},
+                  this.value
                 )
-
-            )
-
-        )
+              "
+            >
 
 
-    c.close()
+            <button
+              class="danger"
+              type="button"
+              onclick="
+                deleteItem(${i})
+              "
+            >
+
+              🗑️ Eliminar producto
+
+            </button>
+
+          </div>
 
 
-    active_promotions = [
+          <div class="subtotal">
 
-        promo
-        for promo in PROMOTIONS
-        if promo.get("active", True)
+            Subtotal:
+            ${money(subtotal)}
 
-    ]
+          </div>
+
+        </div>
+
+      `;
+
+    }).join('');
 
 
-    return render_template(
+  /* =========================
+     PAGOS
+     ========================= */
 
-        "index.html",
+  const paymentsContainer =
+    document.getElementById('payments');
 
-        orders=result,
 
-        products=PRODUCTS,
+  paymentsContainer.innerHTML =
+    pays.map((p,i) => `
 
-        promotions=active_promotions
+      <div class="payment">
 
+        <div class="row">
+
+          <select
+            onchange="
+              pays[${i}].method =
+                this.value
+            "
+          >
+
+            <option
+              value="Efectivo"
+              ${p.method === 'Efectivo'
+                ? 'selected'
+                : ''}
+            >
+              Efectivo
+            </option>
+
+
+            <option
+              value="Zelle"
+              ${p.method === 'Zelle'
+                ? 'selected'
+                : ''}
+            >
+              Zelle
+            </option>
+
+
+            <option
+              value="Cash App"
+              ${p.method === 'Cash App'
+                ? 'selected'
+                : ''}
+            >
+              Cash App
+            </option>
+
+
+            <option
+              value="Tarjeta"
+              ${p.method === 'Tarjeta'
+                ? 'selected'
+                : ''}
+            >
+              Tarjeta
+            </option>
+
+
+            <option
+              value="Otro"
+              ${p.method === 'Otro'
+                ? 'selected'
+                : ''}
+            >
+              Otro
+            </option>
+
+          </select>
+
+
+          <input
+            type="number"
+            step=".01"
+            min="0"
+            placeholder="Monto"
+            value="${p.amount}"
+            onchange="
+              pays[${i}].amount =
+                Math.max(
+                  0,
+                  Number(this.value) || 0
+                );
+
+              render();
+            "
+          >
+
+        </div>
+
+
+        <div class="payment-actions">
+
+          <button
+            class="danger"
+            type="button"
+            onclick="
+              deletePayment(${i})
+            "
+          >
+
+            🗑️ Eliminar pago
+
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join('');
+
+
+  /* =========================
+     TOTALES
+     ========================= */
+
+  const totalAmount =
+    cart.reduce(
+
+      (sum,item) => {
+
+        return sum +
+          (
+            Number(item.qty || 0) *
+            Number(item.unit_price || 0)
+          );
+
+      },
+
+      0
+
+    );
+
+
+  const paidAmount =
+    pays.reduce(
+
+      (sum,payment) => {
+
+        return sum +
+          Number(
+            payment.amount || 0
+          );
+
+      },
+
+      0
+
+    );
+
+
+  const balanceAmount =
+    Math.max(
+      0,
+      totalAmount - paidAmount
+    );
+
+
+  /* =========================
+     RESUMEN GENERAL
+     ========================= */
+
+  const validItems =
+    cart.filter(
+      item => item.product
+    );
+
+
+  const summary =
+    validItems.length
+
+      ? validItems.map(
+          item => {
+
+            const itemSubtotal =
+              Number(item.qty || 0) *
+              Number(item.unit_price || 0);
+
+
+            return `
+
+              <div>
+
+                ${item.product}
+                × ${item.qty}
+                = ${money(itemSubtotal)}
+
+                ${
+                  item.promotion_description
+                    ? `
+                      <small>
+                        🎁 ${item.promotion_description}
+                      </small>
+                    `
+                    : ''
+                }
+
+              </div>
+
+            `;
+
+          }
+        ).join('')
+
+      : 'Sin productos';
+
+
+  document.getElementById(
+    'productSummary'
+  ).innerHTML =
+    summary;
+
+
+  document.getElementById(
+    'productsSubtotal'
+  ).textContent =
+    money(totalAmount);
+
+
+  document.getElementById('total')
+    .textContent =
+      money(totalAmount);
+
+
+  document.getElementById('paid')
+    .textContent =
+      money(paidAmount);
+
+
+  document.getElementById('balance')
+    .textContent =
+      money(balanceAmount);
+
+
+  /* =========================
+     ESTADO DEL PAGO
+     ========================= */
+
+  let paymentStatus =
+    'No pagado';
+
+
+  if(totalAmount <= 0){
+
+    paymentStatus =
+      'No pagado';
+
+  }else if(paidAmount <= 0){
+
+    paymentStatus =
+      'No pagado';
+
+  }else if(paidAmount < totalAmount){
+
+    paymentStatus =
+      'Pago parcial';
+
+  }else{
+
+    paymentStatus =
+      'Pagado';
+
+  }
+
+
+  document.getElementById(
+    'paymentStatus'
+  ).textContent =
+    paymentStatus;
+
+}
+
+/* =========================
+   GUARDAR / ACTUALIZAR
+   ========================= */
+
+async function save(){
+
+  const client =
+    document.getElementById('client')
+      .value.trim();
+
+
+  const date =
+    document.getElementById('date')
+      .value;
+
+
+  const status =
+    document.getElementById('status')
+      .value;
+
+
+  const notes =
+    document.getElementById('notes')
+      .value;
+
+
+  if(!client || !date){
+
+    return alert(
+      'Agrega cliente y fecha.'
+    );
+
+  }
+
+
+  /*
+     Si el pedido NO está cancelado,
+     debe tener productos válidos.
+  */
+
+  if(status !== 'Cancelado'){
+
+    if(!cart.length){
+
+      return alert(
+        'Agrega al menos un producto.'
+      );
+
+    }
+
+
+    const invalidProduct =
+      cart.some(
+        item => !item.product
+      );
+
+
+    if(invalidProduct){
+
+      return alert(
+        'Selecciona un producto en cada línea antes de guardar.'
+      );
+
+    }
+
+  }
+
+
+  /*
+     Si está cancelado,
+     todo queda en cero.
+  */
+
+  let itemsToSave = cart;
+
+  let paymentsToSave = pays;
+
+
+  if(status === 'Cancelado'){
+
+    itemsToSave = [];
+
+    paymentsToSave = [];
+
+  }
+
+
+  const payload = {
+
+    client:client,
+
+    delivery_date:date,
+
+    status:status,
+
+    notes:notes,
+
+    items:itemsToSave,
+
+    payments:paymentsToSave
+
+  };
+
+
+  let url = '/orders';
+
+  let method = 'POST';
+
+
+  if(editingOrderId !== null){
+
+    url =
+      '/orders/' +
+      editingOrderId;
+
+    method = 'POST';
+
+  }
+
+
+  const response =
+    await fetch(
+
+      url,
+
+      {
+
+        method:method,
+
+        headers:{
+          'Content-Type':
+            'application/json'
+        },
+
+        body:
+          JSON.stringify(payload)
+
+      }
+
+    );
+
+
+  if(response.ok){
+
+    alert(
+      editingOrderId !== null
+        ? 'Pedido actualizado correctamente.'
+        : 'Pedido guardado correctamente.'
+    );
+
+    location.reload();
+
+  }else{
+
+    alert(
+      'No se pudo guardar el pedido.'
+    );
+
+  }
+
+}
+
+
+/* =========================
+   EDITAR PEDIDO
+   ========================= */
+
+function editOrder(order){
+
+  editingOrderId =
+    order.id;
+
+
+  document.getElementById(
+    'formTitle'
+  ).textContent =
+    'Editar pedido #' +
+    order.id;
+
+
+  document.getElementById(
+    'client'
+  ).value =
+    order.client;
+
+
+  document.getElementById(
+    'date'
+  ).value =
+    order.delivery_date;
+
+
+  document.getElementById(
+    'status'
+  ).value =
+    order.status;
+
+
+  document.getElementById(
+    'notes'
+  ).value =
+    order.notes || '';
+
+
+  cart =
+    (order.items || []).map(
+      item => ({
+
+        product:item.product,
+
+        qty:Number(item.qty),
+
+        unit_price:
+          Number(item.unit_price),
+
+        promotion_id:
+          item.promotion_id || '',
+
+        promotion_name:
+          item.promotion_name || '',
+
+        promotion_description:
+          item.promotion_description || ''
+
+      })
+    );
+
+
+  if(order.status === 'Cancelado'){
+
+    cart = [];
+
+  }
+
+
+  pays =
+    (order.payments || []).map(
+      payment => ({
+
+        method:payment.method,
+
+        amount:
+          Number(payment.amount)
+
+      })
+    );
+
+
+  if(order.status === 'Cancelado'){
+
+    pays = [];
+
+  }
+
+
+  if(
+    order.status !== 'Cancelado' &&
+    cart.length === 0
+  ){
+
+    cart.push(
+      emptyProduct()
+    );
+
+  }
+
+
+  document.getElementById(
+    'saveButton'
+  ).textContent =
+    'Actualizar pedido';
+
+
+  document.getElementById(
+    'cancelEditButton'
+  ).style.display =
+    'inline-block';
+
+
+  render();
+
+
+  window.scrollTo({
+
+    top:0,
+
+    behavior:'smooth'
+
+  });
+
+}
+
+
+/* =========================
+   CANCELAR EDICIÓN
+   ========================= */
+
+function cancelEdit(){
+
+  editingOrderId = null;
+
+  cart = [
+    emptyProduct()
+  ];
+
+  pays = [];
+
+
+  document.getElementById(
+    'formTitle'
+  ).textContent =
+    'Nuevo pedido';
+
+
+  document.getElementById(
+    'client'
+  ).value =
+    '';
+
+
+  document.getElementById(
+    'date'
+  ).value =
+    '';
+
+
+  document.getElementById(
+    'status'
+  ).value =
+    'Pendiente de elaborar';
+
+
+  document.getElementById(
+    'notes'
+  ).value =
+    '';
+
+
+  document.getElementById(
+    'saveButton'
+  ).textContent =
+    'Guardar pedido';
+
+
+  document.getElementById(
+    'cancelEditButton'
+  ).style.display =
+    'none';
+
+
+  render();
+
+}
+
+
+/* =========================
+   ELIMINAR PEDIDO
+   ========================= */
+
+async function removeOrder(id){
+
+  if(
+    !confirm(
+      '¿Eliminar este pedido definitivamente?'
     )
+  ){
 
+    return;
 
-# ============================================================
-# CREAR PEDIDO
-# ============================================================
+  }
 
-@app.post("/orders")
-def create_order():
 
-    data = request.get_json()
+  const response =
+    await fetch(
 
-    if not data:
+      '/orders/' + id,
 
-        return jsonify({
-            "ok": False,
-            "error": "No se recibió información."
-        }), 400
+      {
+        method:'DELETE'
+      }
 
+    );
 
-    client = data.get("client", "").strip()
 
-    delivery_date = data.get(
-        "delivery_date",
-        ""
-    )
+  if(response.ok){
 
-    status = data.get(
-        "status",
-        "Pendiente de elaborar"
-    )
+    location.reload();
 
-    notes = data.get(
-        "notes",
-        ""
-    )
+  }else{
 
+    alert(
+      'No se pudo eliminar el pedido.'
+    );
 
-    if not client or not delivery_date:
+  }
 
-        return jsonify({
-            "ok": False,
-            "error": "Cliente y fecha son obligatorios."
-        }), 400
+}
 
 
-    c = db()
+/* =========================
+   INICIO
+   ========================= */
 
+cart = [
+  emptyProduct()
+];
 
-    cur = c.execute(
+pays = [];
 
-        """
-        INSERT INTO orders(
+render();
 
-            client,
-            delivery_date,
-            status,
-            notes,
-            created_at
 
-        )
+/* =========================
+   PEDIDOS GUARDADOS
+   ========================= */
 
-        VALUES(?,?,?,?,?)
+const ordersData = [
 
-        """,
+{% for o in orders %}
 
-        (
+{
 
-            client,
+  id:{{o.id}},
 
-            delivery_date,
+  client:
+    {{o.client|tojson}},
 
-            status,
+  delivery_date:
+    {{o.delivery_date|tojson}},
 
-            notes,
+  status:
+    {{o.status|tojson}},
 
-            datetime.now().isoformat()
+  notes:
+    {{o.notes|tojson}},
 
-        )
+  total:
+    {{o.total}},
 
-    )
+  paid:
+    {{o.paid}},
 
+  balance:
+    {{o.balance}},
 
-    oid = cur.lastrowid
+  items:
+    {{o.items|tojson}},
 
+  payments:
+    {{o.payments|tojson}}
 
-    # --------------------------------------------------------
-    # PRODUCTOS
-    # --------------------------------------------------------
+}
 
-    for i in data.get("items", []):
+{% if not loop.last %},{% endif %}
 
-        product = i.get(
-            "product",
-            ""
-        )
+{% endfor %}
 
+];
 
-        if not product:
 
-            continue
+document.getElementById(
+  'orders'
+).innerHTML = ordersData.map(
+  order => {
 
+    const total =
+      Number(order.total || 0);
 
-        qty = max(
-            1,
-            int(i.get("qty", 1))
-        )
 
+    const paid =
+      Number(order.paid || 0);
 
-        unit_price = float(
-            i.get(
-                "unit_price",
-                0
-            )
-        )
 
+    const balance =
+      Number(order.balance || 0);
 
-        c.execute(
 
-            """
-            INSERT INTO items(
+    let paymentStatus =
+      'No pagado';
 
-                order_id,
-                product,
-                qty,
-                unit_price
 
-            )
+    if(total > 0 && paid >= total){
 
-            VALUES(?,?,?,?)
+      paymentStatus =
+        'Pagado';
 
-            """,
+    }else if(paid > 0){
 
-            (
+      paymentStatus =
+        'Pago parcial';
 
-                oid,
-                product,
-                qty,
-                unit_price
+    }
 
-            )
 
-        )
+    const itemsHtml =
+      (order.items || []).map(
+        item => `
 
+          <div>
 
-    # --------------------------------------------------------
-    # PAGOS
-    # --------------------------------------------------------
+            ${item.qty}
+            ×
+            ${item.product}
+            —
+            ${money(
+              Number(item.qty) *
+              Number(item.unit_price)
+            )}
 
-    for p in data.get("payments", []):
+            ${
+              item.promotion_description
+                ? `
+                  <br>
+                  <small>
+                    🎁 ${item.promotion_description}
+                  </small>
+                `
+                : ''
+            }
 
-        amount = float(
-            p.get(
-                "amount",
-                0
-            )
-        )
+          </div>
 
+        `
+      ).join('');
 
-        if amount <= 0:
 
-            continue
+    const paymentsHtml =
+      (order.payments || []).map(
+        payment => `
 
+          <div>
 
-        c.execute(
+            ${payment.method}:
+            ${money(payment.amount)}
 
-            """
-            INSERT INTO payments(
+          </div>
 
-                order_id,
-                method,
-                amount
+        `
+      ).join('');
 
-            )
 
-            VALUES(?,?,?)
+    return `
 
-            """,
+      <div class="card">
 
-            (
+        <h3>
 
-                oid,
+          Pedido #${order.id}
 
-                p.get(
-                    "method",
-                    "Efectivo"
-                ),
+        </h3>
 
-                amount
 
-            )
+        <b>
 
-        )
+          ${order.client}
 
+        </b>
 
-    c.commit()
 
-    c.close()
+        <br><br>
 
 
-    return jsonify({
+        ${itemsHtml || 'Sin productos'}
 
-        "ok": True,
 
-        "id": oid
+        <br>
 
-    })
 
+        <span class="tag">
 
-# ============================================================
-# ACTUALIZAR PEDIDO
-# ============================================================
+          📅
+          ${order.delivery_date}
 
-@app.post("/orders/<int:oid>")
-def update_order(oid):
+        </span>
 
-    data = request.get_json()
 
-    if not data:
+        <span class="tag">
 
-        return jsonify({
-            "ok": False,
-            "error": "No se recibió información."
-        }), 400
+          📌
+          ${order.status}
 
+        </span>
 
-    c = db()
 
+        <span class="tag">
 
-    existing = c.execute(
+          💰
+          Total ${money(total)}
 
-        """
-        SELECT id
-        FROM orders
-        WHERE id=?
-        """,
+        </span>
 
-        (oid,)
 
-    ).fetchone()
+        <span class="tag">
 
+          💵
+          Pagado ${money(paid)}
 
-    if not existing:
+        </span>
 
-        c.close()
 
-        return jsonify({
-            "ok": False,
-            "error": "Pedido no encontrado."
-        }), 404
+        <span class="tag">
 
+          Saldo ${money(balance)}
 
-    c.execute(
+        </span>
 
-        """
-        UPDATE orders
 
-        SET
+        <div class="payment-status">
 
-            client=?,
+          Estado de pago:
+          ${paymentStatus}
 
-            delivery_date=?,
+        </div>
 
-            status=?,
 
-            notes=?
+        ${
+          paymentsHtml
+            ? `
+              <br><br>
+              <b>Pagos:</b>
+              ${paymentsHtml}
+            `
+            : ''
+        }
 
-        WHERE id=?
 
-        """,
+        ${
+          order.notes
+            ? `
+              <br><br>
+              📝 ${order.notes}
+            `
+            : ''
+        }
 
-        (
 
-            data.get(
-                "client",
-                ""
-            ),
+        <div class="order-buttons">
 
-            data.get(
-                "delivery_date",
-                ""
-            ),
+          <button
+            class="secondary"
+            onclick='editOrder(
+              ${JSON.stringify(order)}
+            )'
+          >
 
-            data.get(
-                "status",
-                "Pendiente de elaborar"
-            ),
+            ✏️ Editar
 
-            data.get(
-                "notes",
-                ""
-            ),
+          </button>
 
-            oid
 
-        )
+          <button
+            class="danger"
+            onclick="
+              removeOrder(
+                ${order.id}
+              )
+            "
+          >
 
-    )
+            🗑️ Eliminar
 
+          </button>
 
-    # --------------------------------------------------------
-    # REEMPLAZAR PRODUCTOS
-    # --------------------------------------------------------
+        </div>
 
-    c.execute(
+      </div>
 
-        "DELETE FROM items WHERE order_id=?",
+    `;
 
-        (oid,)
+  }
+).join('');
 
-    )
 
+</script>
 
-    for i in data.get("items", []):
 
-        product = i.get(
-            "product",
-            ""
-        )
+</body>
 
-
-        if not product:
-
-            continue
-
-
-        qty = max(
-            1,
-            int(i.get("qty", 1))
-        )
-
-
-        unit_price = float(
-            i.get(
-                "unit_price",
-                0
-            )
-        )
-
-
-        c.execute(
-
-            """
-            INSERT INTO items(
-
-                order_id,
-                product,
-                qty,
-                unit_price
-
-            )
-
-            VALUES(?,?,?,?)
-
-            """,
-
-            (
-
-                oid,
-                product,
-                qty,
-                unit_price
-
-            )
-
-        )
-
-
-    # --------------------------------------------------------
-    # REEMPLAZAR PAGOS
-    # --------------------------------------------------------
-
-    c.execute(
-
-        "DELETE FROM payments WHERE order_id=?",
-
-        (oid,)
-
-    )
-
-
-    for p in data.get("payments", []):
-
-        amount = float(
-            p.get(
-                "amount",
-                0
-            )
-        )
-
-
-        if amount <= 0:
-
-            continue
-
-
-        c.execute(
-
-            """
-            INSERT INTO payments(
-
-                order_id,
-                method,
-                amount
-
-            )
-
-            VALUES(?,?,?)
-
-            """,
-
-            (
-
-                oid,
-
-                p.get(
-                    "method",
-                    "Efectivo"
-                ),
-
-                amount
-
-            )
-
-        )
-
-
-    c.commit()
-
-    c.close()
-
-
-    return jsonify({
-
-        "ok": True
-
-    })
-
-
-# ============================================================
-# ELIMINAR PEDIDO
-# ============================================================
-
-@app.delete("/orders/<int:oid>")
-def delete_order(oid):
-
-    c = db()
-
-
-    c.execute(
-
-        "DELETE FROM payments WHERE order_id=?",
-
-        (oid,)
-
-    )
-
-
-    c.execute(
-
-        "DELETE FROM items WHERE order_id=?",
-
-        (oid,)
-
-    )
-
-
-    c.execute(
-
-        "DELETE FROM orders WHERE id=?",
-
-        (oid,)
-
-    )
-
-
-    c.commit()
-
-    c.close()
-
-
-    return jsonify({
-
-        "ok": True
-
-    })
-
-
-# ============================================================
-# EJECUCIÓN LOCAL
-# ============================================================
-
-if __name__ == "__main__":
-
-    port = int(
-
-        os.environ.get(
-            "PORT",
-            5000
-        )
-
-    )
-
-
-    app.run(
-
-        host="0.0.0.0",
-
-        port=port,
-
-        debug=False
-
-    )
+</html>
