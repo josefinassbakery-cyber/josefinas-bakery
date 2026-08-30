@@ -343,10 +343,6 @@ button{
 >
 
 
-<label>
-  Productos
-</label>
-
 <div id="items"></div>
 
 
@@ -936,24 +932,22 @@ function render(){
           </select>
 
 
-          ${
-            (window.promotions || []).length
-              ? `
-                <select
-                  onchange="
-                    changePromotion(
-                      ${i},
-                      this.value
-                    )
-                  "
-                >
+          <label>
+            Promoción
+          </label>
 
-                  ${promotionOptions}
+          <select
+            onchange="
+              changePromotion(
+                ${i},
+                this.value
+              )
+            "
+          >
 
-                </select>
-              `
-              : ''
-          }
+            ${promotionOptions}
+
+          </select>
 
 
           ${promotionInfo}
