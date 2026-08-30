@@ -2,188 +2,475 @@
 <html lang="es">
 
 <head>
+
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1"
+>
 
 <title>Josefina's Bakery</title>
 
+
 <style>
+
 :root{
+
   --b:#5b3826;
   --c:#f7f0e7;
   --p:#fffdf9;
   --l:#dfd2c6;
-  --s:#eee2d5
+  --s:#eee2d5;
+
 }
+
 
 body{
+
   margin:0;
+
   font-family:system-ui,sans-serif;
+
   background:var(--c);
-  color:#3b2a20
+
+  color:#3b2a20;
+
 }
+
 
 header{
+
   background:var(--b);
+
   color:white;
+
   padding:22px 18px;
-  border-radius:0 0 24px 24px
+
+  border-radius:0 0 24px 24px;
+
 }
 
+
 main{
+
   max-width:850px;
+
   margin:auto;
-  padding:16px
+
+  padding:16px;
+
 }
+
 
 .card,
 section{
+
   background:var(--p);
+
   padding:15px;
+
   border-radius:18px;
-  margin:12px 0
+
+  margin:12px 0;
+
 }
 
+
 .row{
+
   display:grid;
+
   grid-template-columns:1fr 1fr;
-  gap:10px
+
+  gap:10px;
+
 }
+
 
 input,
 select,
 textarea{
+
   width:100%;
+
   padding:11px;
+
   border:1px solid var(--l);
+
   border-radius:10px;
+
   box-sizing:border-box;
-  margin:5px 0 10px
+
+  margin:5px 0 10px;
+
 }
+
 
 button{
+
   padding:11px 14px;
+
   border:0;
+
   border-radius:12px;
+
   font-weight:700;
-  cursor:pointer
+
+  cursor:pointer;
+
 }
+
 
 .primary{
+
   background:var(--b);
-  color:white
+
+  color:white;
+
 }
+
 
 .secondary{
+
   background:white;
+
   border:1px solid var(--l);
-  color:var(--b)
+
+  color:var(--b);
+
 }
+
+
+.danger{
+
+  background:#f8dddd;
+
+  color:#8b2020;
+
+  border:1px solid #e7bcbc;
+
+}
+
 
 .item{
-  padding:8px 0;
-  border-bottom:1px solid #eee
+
+  padding:12px 0;
+
+  border-bottom:1px solid #eee;
+
 }
 
-.tag{
-  display:inline-block;
-  background:var(--s);
-  padding:5px 8px;
-  border-radius:8px;
-  font-size:12px;
-  margin:4px 3px 0 0
+
+.item-actions{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+
 }
+
+
+.subtotal{
+
+  font-weight:700;
+
+  margin:4px 0 8px;
+
+}
+
+
+.payment{
+
+  padding:10px 0;
+
+  border-bottom:1px solid #eee;
+
+}
+
+
+.payment-actions{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+}
+
+
+.tag{
+
+  display:inline-block;
+
+  background:var(--s);
+
+  padding:5px 8px;
+
+  border-radius:8px;
+
+  font-size:12px;
+
+  margin:4px 3px 0 0;
+
+}
+
+
+.payment-status{
+
+  display:inline-block;
+
+  padding:6px 10px;
+
+  border-radius:9px;
+
+  background:var(--s);
+
+  font-weight:700;
+
+  font-size:13px;
+
+  margin-top:8px;
+
+}
+
+
+.order-buttons{
+
+  display:flex;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+
+  margin-top:12px;
+
+}
+
+
+@media(max-width:600px){
+
+  .row{
+
+    grid-template-columns:1fr;
+
+  }
+
+}
+
 </style>
 
 </head>
 
+
 <body>
 
+
 <header>
+
   <h1>Josefina's Bakery 🥖</h1>
-  <div>Panes, café y más · Horneamos con amor</div>
+
+  <div>
+    Panes, café y más · Horneamos con amor
+  </div>
+
 </header>
+
 
 <main>
 
+
 <section>
 
-<h2>Nuevo pedido</h2>
+<h2 id="formTitle">
+  Nuevo pedido
+</h2>
 
-<input id="client" placeholder="Cliente">
 
-<input id="date" type="date">
+<input
+  id="client"
+  placeholder="Cliente"
+>
+
+
+<input
+  id="date"
+  type="date"
+>
+
 
 <div id="items"></div>
 
-<button class="secondary" onclick="addItem()">
-➕ Agregar producto
+
+<button
+  class="secondary"
+  onclick="addItem()"
+>
+
+  ➕ Agregar producto
+
 </button>
 
+
 <h3>
-Total: <span id="total">$0.00</span>
+
+  Total:
+  <span id="total">$0.00</span>
+
 </h3>
+
+
+<h3>
+  Pagos
+</h3>
+
 
 <div id="payments"></div>
 
-<button class="secondary" onclick="addPayment()">
-➕ Agregar pago
+
+<button
+  class="secondary"
+  onclick="addPayment()"
+>
+
+  ➕ Agregar pago
+
 </button>
 
+
 <div>
-Pagado: <b id="paid">$0.00</b>
-·
-Saldo: <b id="balance">$0.00</b>
+
+  Pagado:
+  <b id="paid">$0.00</b>
+
+  ·
+
+  Saldo:
+  <b id="balance">$0.00</b>
+
 </div>
+
+
+<div>
+
+  Estado del pago:
+  <b id="paymentStatus">
+    No pagado
+  </b>
+
+</div>
+
 
 <br>
 
-<select id="status">
 
-<option>Pendiente de elaborar</option>
-<option>Pre-elaborado</option>
-<option>Listo para entregar</option>
-<option>Entregado</option>
-<option>Finalizado</option>
+<label>
+  Estado del pedido
+</label>
+
+
+<select
+  id="status"
+  onchange="statusChanged()"
+>
+
+  <option>
+    Pendiente de elaborar
+  </option>
+
+  <option>
+    Pre-elaborado
+  </option>
+
+  <option>
+    Listo para entregar
+  </option>
+
+  <option>
+    Entregado
+  </option>
+
+  <option>
+    Cancelado
+  </option>
 
 </select>
 
-<textarea
-id="notes"
-placeholder="Notas / pedido especial">
-</textarea>
 
-<button class="primary" onclick="save()">
-Guardar pedido
+<textarea
+  id="notes"
+  placeholder="Notas / pedido especial"
+></textarea>
+
+
+<button
+  id="saveButton"
+  class="primary"
+  onclick="save()"
+>
+
+  Guardar pedido
+
 </button>
 
+
+<button
+  id="cancelEditButton"
+  class="secondary"
+  onclick="cancelEdit()"
+  style="display:none;margin-left:6px"
+>
+
+  Cancelar edición
+
+</button>
+
+
 </section>
+
 
 
 <section>
 
-<h2>Pedidos</h2>
+<h2>
+  Pedidos
+</h2>
+
 
 <div id="orders"></div>
 
+
 </section>
+
 
 </main>
 
 
+
 <script>
+
+
+/* =========================
+   PRODUCTOS
+   ========================= */
 
 const products = {{products|tojson}};
 
-let cart = [
-  {
-    product: '',
-    qty: 1,
-    unit_price: 0
-  }
-];
+
+/* =========================
+   VARIABLES
+   ========================= */
+
+let cart = [];
 
 let pays = [];
+
+let editingOrderId = null;
 
 
 /* =========================
@@ -192,7 +479,25 @@ let pays = [];
 
 function money(n){
 
-  return '$' + Number(n || 0).toFixed(2);
+  return '$' +
+    Number(n || 0).toFixed(2);
+
+}
+
+
+/* =========================
+   PRODUCTO VACÍO
+   ========================= */
+
+function emptyProduct(){
+
+  return {
+
+    product:'',
+    qty:1,
+    unit_price:0
+
+  };
 
 }
 
@@ -203,11 +508,36 @@ function money(n){
 
 function addItem(){
 
-  cart.push({
-    product: '',
-    qty: 1,
-    unit_price: 0
-  });
+  cart.push(
+    emptyProduct()
+  );
+
+  render();
+
+}
+
+
+/* =========================
+   ELIMINAR PRODUCTO
+   ========================= */
+
+function deleteItem(index){
+
+  cart.splice(index,1);
+
+  /*
+     Si eliminamos todos los productos
+     dejamos una línea vacía para poder
+     continuar agregando.
+  */
+
+  if(cart.length === 0){
+
+    cart.push(
+      emptyProduct()
+    );
+
+  }
 
   render();
 
@@ -218,19 +548,21 @@ function addItem(){
    CAMBIAR PRODUCTO
    ========================= */
 
-function changeProduct(index, value){
+function changeProduct(index,value){
 
-  const selectedProduct = products.find(
-    p => p[0] === value
-  );
+  const selectedProduct =
+    products.find(
+      p => p[0] === value
+    );
+
 
   if(selectedProduct){
 
-    cart[index].product = selectedProduct[0];
+    cart[index].product =
+      selectedProduct[0];
 
-    cart[index].unit_price = Number(
-      selectedProduct[1]
-    ) || 0;
+    cart[index].unit_price =
+      Number(selectedProduct[1]) || 0;
 
   }else{
 
@@ -239,6 +571,24 @@ function changeProduct(index, value){
     cart[index].unit_price = 0;
 
   }
+
+
+  render();
+
+}
+
+
+/* =========================
+   CAMBIAR CANTIDAD
+   ========================= */
+
+function changeQty(index,value){
+
+  cart[index].qty =
+    Math.max(
+      1,
+      Number(value) || 1
+    );
 
   render();
 
@@ -252,11 +602,64 @@ function changeProduct(index, value){
 function addPayment(){
 
   pays.push({
-    method: 'Efectivo',
-    amount: 0
+
+    method:'Efectivo',
+
+    amount:0
+
   });
 
   render();
+
+}
+
+
+/* =========================
+   ELIMINAR PAGO
+   ========================= */
+
+function deletePayment(index){
+
+  pays.splice(index,1);
+
+  render();
+
+}
+
+
+/* =========================
+   CAMBIAR ESTADO
+   ========================= */
+
+function statusChanged(){
+
+  const status =
+    document.getElementById('status').value;
+
+
+  if(status === 'Cancelado'){
+
+    const confirmed = confirm(
+      'Al cancelar este pedido, los productos y pagos quedarán en $0.00. ¿Deseas continuar?'
+    );
+
+
+    if(confirmed){
+
+      cart = [];
+
+      pays = [];
+
+      render();
+
+    }else{
+
+      document.getElementById('status').value =
+        'Pendiente de elaborar';
+
+    }
+
+  }
 
 }
 
@@ -267,149 +670,233 @@ function addPayment(){
 
 function render(){
 
-  document.getElementById('items').innerHTML = cart.map((x,i) => {
+  const itemsContainer =
+    document.getElementById('items');
 
-    let productOptions = `
-      <option value="">
-        Seleccione un producto
-      </option>
-    `;
 
-    products.forEach(p => {
+  itemsContainer.innerHTML =
+    cart.map((x,i) => {
 
-      const selected =
-        p[0] === x.product
-          ? 'selected'
-          : '';
+      let productOptions = `
 
-      productOptions += `
-        <option
-          value="${p[0]}"
-          ${selected}
+        <option value=""
+          ${x.product === ''
+            ? 'selected'
+            : ''}
         >
-          ${p[0]} — ${money(p[1])}
+
+          Seleccione un producto
+
         </option>
+
       `;
 
-    });
+
+      products.forEach(p => {
+
+        const selected =
+          p[0] === x.product
+            ? 'selected'
+            : '';
 
 
-    return `
+        productOptions += `
 
-      <div class="item">
+          <option
+            value="${p[0]}"
+            ${selected}
+          >
 
-        <select
-          onchange="changeProduct(${i}, this.value)"
-        >
+            ${p[0]} — ${money(p[1])}
 
-          ${productOptions}
+          </option>
 
-        </select>
+        `;
+
+      });
 
 
-        <input
-          type="number"
-          min="1"
-          value="${x.qty}"
+      const subtotal =
+        Number(x.qty || 0) *
+        Number(x.unit_price || 0);
 
-          onchange="
-            cart[${i}].qty =
-              Math.max(
-                1,
-                Number(this.value) || 1
-              );
 
-            render();
-          "
-        >
+      return `
 
-      </div>
+        <div class="item">
 
-    `;
+          <select
+            onchange="
+              changeProduct(
+                ${i},
+                this.value
+              )
+            "
+          >
 
-  }).join('');
+            ${productOptions}
+
+          </select>
+
+
+          <div class="item-actions">
+
+            <label>
+              Cantidad:
+            </label>
+
+            <input
+              type="number"
+              min="1"
+              value="${x.qty}"
+              style="max-width:120px"
+              onchange="
+                changeQty(
+                  ${i},
+                  this.value
+                )
+              "
+            >
+
+
+            <button
+              class="danger"
+              type="button"
+              onclick="
+                deleteItem(${i})
+              "
+            >
+
+              🗑️ Eliminar producto
+
+            </button>
+
+          </div>
+
+
+          <div class="subtotal">
+
+            Subtotal:
+            ${money(subtotal)}
+
+          </div>
+
+        </div>
+
+      `;
+
+    }).join('');
 
 
   /* =========================
      PAGOS
      ========================= */
 
-  document.getElementById('payments').innerHTML =
+  const paymentsContainer =
+    document.getElementById('payments');
+
+
+  paymentsContainer.innerHTML =
     pays.map((p,i) => `
 
-      <div class="row">
+      <div class="payment">
 
-        <select
-          onchange="
-            pays[${i}].method = this.value
-          "
-        >
+        <div class="row">
 
-          <option
-            value="Efectivo"
-            ${p.method === 'Efectivo'
-              ? 'selected'
-              : ''}
+          <select
+            onchange="
+              pays[${i}].method =
+                this.value
+            "
           >
-            Efectivo
-          </option>
 
-          <option
-            value="Zelle"
-            ${p.method === 'Zelle'
-              ? 'selected'
-              : ''}
+            <option
+              value="Efectivo"
+              ${p.method === 'Efectivo'
+                ? 'selected'
+                : ''}
+            >
+              Efectivo
+            </option>
+
+
+            <option
+              value="Zelle"
+              ${p.method === 'Zelle'
+                ? 'selected'
+                : ''}
+            >
+              Zelle
+            </option>
+
+
+            <option
+              value="Cash App"
+              ${p.method === 'Cash App'
+                ? 'selected'
+                : ''}
+            >
+              Cash App
+            </option>
+
+
+            <option
+              value="Tarjeta"
+              ${p.method === 'Tarjeta'
+                ? 'selected'
+                : ''}
+            >
+              Tarjeta
+            </option>
+
+
+            <option
+              value="Otro"
+              ${p.method === 'Otro'
+                ? 'selected'
+                : ''}
+            >
+              Otro
+            </option>
+
+          </select>
+
+
+          <input
+            type="number"
+            step=".01"
+            min="0"
+            placeholder="Monto"
+            value="${p.amount}"
+            onchange="
+              pays[${i}].amount =
+                Math.max(
+                  0,
+                  Number(this.value) || 0
+                );
+
+              render();
+            "
           >
-            Zelle
-          </option>
 
-          <option
-            value="Cash App"
-            ${p.method === 'Cash App'
-              ? 'selected'
-              : ''}
+        </div>
+
+
+        <div class="payment-actions">
+
+          <button
+            class="danger"
+            type="button"
+            onclick="
+              deletePayment(${i})
+            "
           >
-            Cash App
-          </option>
 
-          <option
-            value="Tarjeta"
-            ${p.method === 'Tarjeta'
-              ? 'selected'
-              : ''}
-          >
-            Tarjeta
-          </option>
+            🗑️ Eliminar pago
 
-          <option
-            value="Otro"
-            ${p.method === 'Otro'
-              ? 'selected'
-              : ''}
-          >
-            Otro
-          </option>
+          </button>
 
-        </select>
-
-
-        <input
-          type="number"
-          step=".01"
-          min="0"
-          placeholder="Monto"
-          value="${p.amount}"
-
-          onchange="
-            pays[${i}].amount =
-              Math.max(
-                0,
-                Number(this.value) || 0
-              );
-
-            render();
-          "
-        >
+        </div>
 
       </div>
 
@@ -420,64 +907,129 @@ function render(){
      TOTALES
      ========================= */
 
-  const totalAmount = cart.reduce(
+  const totalAmount =
+    cart.reduce(
 
-    (sum,item) => {
+      (sum,item) => {
 
-      return sum +
-        (
-          Number(item.qty) *
-          Number(item.unit_price)
-        );
+        return sum +
+          (
+            Number(item.qty || 0) *
+            Number(item.unit_price || 0)
+          );
 
-    },
+      },
 
-    0
+      0
 
-  );
-
-
-  const paidAmount = pays.reduce(
-
-    (sum,payment) => {
-
-      return sum +
-        Number(payment.amount || 0);
-
-    },
-
-    0
-
-  );
-
-
-  document.getElementById('total').textContent =
-    money(totalAmount);
-
-  document.getElementById('paid').textContent =
-    money(paidAmount);
-
-  document.getElementById('balance').textContent =
-    money(
-      Math.max(
-        0,
-        totalAmount - paidAmount
-      )
     );
+
+
+  const paidAmount =
+    pays.reduce(
+
+      (sum,payment) => {
+
+        return sum +
+          Number(
+            payment.amount || 0
+          );
+
+      },
+
+      0
+
+    );
+
+
+  const balanceAmount =
+    Math.max(
+      0,
+      totalAmount - paidAmount
+    );
+
+
+  document.getElementById('total')
+    .textContent =
+      money(totalAmount);
+
+
+  document.getElementById('paid')
+    .textContent =
+      money(paidAmount);
+
+
+  document.getElementById('balance')
+    .textContent =
+      money(balanceAmount);
+
+
+  /* =========================
+     ESTADO DEL PAGO
+     ========================= */
+
+  let paymentStatus =
+    'No pagado';
+
+
+  if(totalAmount <= 0){
+
+    paymentStatus =
+      'No pagado';
+
+  }else if(paidAmount <= 0){
+
+    paymentStatus =
+      'No pagado';
+
+  }else if(paidAmount < totalAmount){
+
+    paymentStatus =
+      'Pago parcial';
+
+  }else{
+
+    paymentStatus =
+      'Pagado';
+
+  }
+
+
+  document.getElementById(
+    'paymentStatus'
+  ).textContent =
+    paymentStatus;
 
 }
 
 
 /* =========================
-   GUARDAR PEDIDO
+   GUARDAR / ACTUALIZAR
    ========================= */
 
 async function save(){
 
-  if(
-    !document.getElementById('client').value ||
-    !document.getElementById('date').value
-  ){
+  const client =
+    document.getElementById('client')
+      .value.trim();
+
+
+  const date =
+    document.getElementById('date')
+      .value;
+
+
+  const status =
+    document.getElementById('status')
+      .value;
+
+
+  const notes =
+    document.getElementById('notes')
+      .value;
+
+
+  if(!client || !date){
 
     return alert(
       'Agrega cliente y fecha.'
@@ -486,73 +1038,127 @@ async function save(){
   }
 
 
-  if(!cart.length){
+  /*
+     Si el pedido NO está cancelado,
+     debe tener productos válidos.
+  */
 
-    return alert(
-      'Agrega al menos un producto.'
-    );
+  if(status !== 'Cancelado'){
 
-  }
+    if(!cart.length){
 
-
-  const invalidProduct = cart.some(
-    item => !item.product
-  );
-
-
-  if(invalidProduct){
-
-    return alert(
-      'Selecciona un producto en cada línea antes de guardar el pedido.'
-    );
-
-  }
-
-
-  const r = await fetch(
-
-    '/orders',
-
-    {
-      method:'POST',
-
-      headers:{
-        'Content-Type':'application/json'
-      },
-
-      body:JSON.stringify({
-
-        client:
-          document.getElementById('client').value,
-
-        delivery_date:
-          document.getElementById('date').value,
-
-        status:
-          document.getElementById('status').value,
-
-        notes:
-          document.getElementById('notes').value,
-
-        items:cart,
-
-        payments:pays
-
-      })
+      return alert(
+        'Agrega al menos un producto.'
+      );
 
     }
 
-  );
+
+    const invalidProduct =
+      cart.some(
+        item => !item.product
+      );
 
 
-  if(r.ok){
+    if(invalidProduct){
+
+      return alert(
+        'Selecciona un producto en cada línea antes de guardar.'
+      );
+
+    }
+
+  }
+
+
+  /*
+     Si está cancelado,
+     todo queda en cero.
+  */
+
+  let itemsToSave = cart;
+
+  let paymentsToSave = pays;
+
+
+  if(status === 'Cancelado'){
+
+    itemsToSave = [];
+
+    paymentsToSave = [];
+
+  }
+
+
+  const payload = {
+
+    client:client,
+
+    delivery_date:date,
+
+    status:status,
+
+    notes:notes,
+
+    items:itemsToSave,
+
+    payments:paymentsToSave
+
+  };
+
+
+  let url = '/orders';
+
+  let method = 'POST';
+
+
+  if(editingOrderId !== null){
+
+    url =
+      '/orders/' +
+      editingOrderId;
+
+    method = 'POST';
+
+  }
+
+
+  const response =
+    await fetch(
+
+      url,
+
+      {
+
+        method:method,
+
+        headers:{
+          'Content-Type':
+            'application/json'
+        },
+
+        body:
+          JSON.stringify(payload)
+
+      }
+
+    );
+
+
+  if(response.ok){
+
+    alert(
+      editingOrderId !== null
+        ? 'Pedido actualizado correctamente.'
+        : 'Pedido guardado correctamente.'
+    );
 
     location.reload();
 
   }else{
 
     alert(
-      'No se pudo guardar.'
+      'No se pudo guardar el pedido.'
     );
 
   }
@@ -561,17 +1167,206 @@ async function save(){
 
 
 /* =========================
+   EDITAR PEDIDO
+   ========================= */
+
+function editOrder(order){
+
+  editingOrderId =
+    order.id;
+
+
+  document.getElementById(
+    'formTitle'
+  ).textContent =
+    'Editar pedido #' +
+    order.id;
+
+
+  document.getElementById(
+    'client'
+  ).value =
+    order.client;
+
+
+  document.getElementById(
+    'date'
+  ).value =
+    order.delivery_date;
+
+
+  document.getElementById(
+    'status'
+  ).value =
+    order.status;
+
+
+  document.getElementById(
+    'notes'
+  ).value =
+    order.notes || '';
+
+
+  cart =
+    (order.items || []).map(
+      item => ({
+
+        product:item.product,
+
+        qty:Number(item.qty),
+
+        unit_price:
+          Number(item.unit_price)
+
+      })
+    );
+
+
+  if(order.status === 'Cancelado'){
+
+    cart = [];
+
+  }
+
+
+  pays =
+    (order.payments || []).map(
+      payment => ({
+
+        method:payment.method,
+
+        amount:
+          Number(payment.amount)
+
+      })
+    );
+
+
+  if(order.status === 'Cancelado'){
+
+    pays = [];
+
+  }
+
+
+  if(
+    order.status !== 'Cancelado' &&
+    cart.length === 0
+  ){
+
+    cart.push(
+      emptyProduct()
+    );
+
+  }
+
+
+  document.getElementById(
+    'saveButton'
+  ).textContent =
+    'Actualizar pedido';
+
+
+  document.getElementById(
+    'cancelEditButton'
+  ).style.display =
+    'inline-block';
+
+
+  render();
+
+
+  window.scrollTo({
+
+    top:0,
+
+    behavior:'smooth'
+
+  });
+
+}
+
+
+/* =========================
+   CANCELAR EDICIÓN
+   ========================= */
+
+function cancelEdit(){
+
+  editingOrderId = null;
+
+  cart = [
+    emptyProduct()
+  ];
+
+  pays = [];
+
+
+  document.getElementById(
+    'formTitle'
+  ).textContent =
+    'Nuevo pedido';
+
+
+  document.getElementById(
+    'client'
+  ).value =
+    '';
+
+
+  document.getElementById(
+    'date'
+  ).value =
+    '';
+
+
+  document.getElementById(
+    'status'
+  ).value =
+    'Pendiente de elaborar';
+
+
+  document.getElementById(
+    'notes'
+  ).value =
+    '';
+
+
+  document.getElementById(
+    'saveButton'
+  ).textContent =
+    'Guardar pedido';
+
+
+  document.getElementById(
+    'cancelEditButton'
+  ).style.display =
+    'none';
+
+
+  render();
+
+}
+
+
+/* =========================
    ELIMINAR PEDIDO
    ========================= */
 
-async function remove(id){
+async function removeOrder(id){
 
   if(
-    confirm(
-      '¿Eliminar este pedido?'
+    !confirm(
+      '¿Eliminar este pedido definitivamente?'
     )
   ){
 
+    return;
+
+  }
+
+
+  const response =
     await fetch(
 
       '/orders/' + id,
@@ -582,7 +1377,16 @@ async function remove(id){
 
     );
 
+
+  if(response.ok){
+
     location.reload();
+
+  }else{
+
+    alert(
+      'No se pudo eliminar el pedido.'
+    );
 
   }
 
@@ -593,98 +1397,268 @@ async function remove(id){
    INICIO
    ========================= */
 
+cart = [
+  emptyProduct()
+];
+
+pays = [];
+
 render();
 
 
 /* =========================
-   MOSTRAR PEDIDOS
+   PEDIDOS GUARDADOS
    ========================= */
 
-document.getElementById('orders').innerHTML = `
+const ordersData = [
 
 {% for o in orders %}
 
-<div class="card">
+{
 
-<b>{{o.client}}</b>
+  id:{{o.id}},
 
-—
+  client:
+    {{o.client|tojson}},
 
-{{'$%.2f'|format(o.total)}}
+  delivery_date:
+    {{o.delivery_date|tojson}},
 
-<br>
+  status:
+    {{o.status|tojson}},
 
+  notes:
+    {{o.notes|tojson}},
 
-{% for i in o.items %}
+  total:
+    {{o.total}},
 
-{{i.qty}}
+  paid:
+    {{o.paid}},
 
-×
+  balance:
+    {{o.balance}},
 
-{{i.product}}
+  items:
+    {{o.items|tojson}},
 
-—
+  payments:
+    {{o.payments|tojson}}
 
-{{'$%.2f'|format(i.qty*i.unit_price)}}
+}
 
-<br>
-
-{% endfor %}
-
-
-<span class="tag">
-
-📅 {{o.delivery_date}}
-
-</span>
-
-
-<span class="tag">
-
-📌 {{o.status}}
-
-</span>
-
-
-<span class="tag">
-
-💰 Pagado {{'$%.2f'|format(o.paid)}}
-
-·
-
-Saldo {{'$%.2f'|format(o.balance)}}
-
-</span>
-
-
-{% if o.notes %}
-
-<br>
-
-📝 {{o.notes}}
-
-{% endif %}
-
-
-<br>
-
-
-<button
-class="secondary"
-onclick="remove({{o.id}})"
->
-
-Eliminar
-
-</button>
-
-</div>
+{% if not loop.last %},{% endif %}
 
 {% endfor %}
 
-`;
+];
+
+
+document.getElementById(
+  'orders'
+).innerHTML = ordersData.map(
+  order => {
+
+    const total =
+      Number(order.total || 0);
+
+
+    const paid =
+      Number(order.paid || 0);
+
+
+    const balance =
+      Number(order.balance || 0);
+
+
+    let paymentStatus =
+      'No pagado';
+
+
+    if(total > 0 && paid >= total){
+
+      paymentStatus =
+        'Pagado';
+
+    }else if(paid > 0){
+
+      paymentStatus =
+        'Pago parcial';
+
+    }
+
+
+    const itemsHtml =
+      (order.items || []).map(
+        item => `
+
+          <div>
+
+            ${item.qty}
+            ×
+            ${item.product}
+            —
+            ${money(
+              Number(item.qty) *
+              Number(item.unit_price)
+            )}
+
+          </div>
+
+        `
+      ).join('');
+
+
+    const paymentsHtml =
+      (order.payments || []).map(
+        payment => `
+
+          <div>
+
+            ${payment.method}:
+            ${money(payment.amount)}
+
+          </div>
+
+        `
+      ).join('');
+
+
+    return `
+
+      <div class="card">
+
+        <h3>
+
+          Pedido #${order.id}
+
+        </h3>
+
+
+        <b>
+
+          ${order.client}
+
+        </b>
+
+
+        <br><br>
+
+
+        ${itemsHtml || 'Sin productos'}
+
+
+        <br>
+
+
+        <span class="tag">
+
+          📅
+          ${order.delivery_date}
+
+        </span>
+
+
+        <span class="tag">
+
+          📌
+          ${order.status}
+
+        </span>
+
+
+        <span class="tag">
+
+          💰
+          Total ${money(total)}
+
+        </span>
+
+
+        <span class="tag">
+
+          💵
+          Pagado ${money(paid)}
+
+        </span>
+
+
+        <span class="tag">
+
+          Saldo ${money(balance)}
+
+        </span>
+
+
+        <div class="payment-status">
+
+          Estado de pago:
+          ${paymentStatus}
+
+        </div>
+
+
+        ${
+          paymentsHtml
+            ? `
+              <br><br>
+              <b>Pagos:</b>
+              ${paymentsHtml}
+            `
+            : ''
+        }
+
+
+        ${
+          order.notes
+            ? `
+              <br><br>
+              📝 ${order.notes}
+            `
+            : ''
+        }
+
+
+        <div class="order-buttons">
+
+          <button
+            class="secondary"
+            onclick='editOrder(
+              ${JSON.stringify(order)}
+            )'
+          >
+
+            ✏️ Editar
+
+          </button>
+
+
+          <button
+            class="danger"
+            onclick="
+              removeOrder(
+                ${order.id}
+              )
+            "
+          >
+
+            🗑️ Eliminar
+
+          </button>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+).join('');
+
 
 </script>
 
+
 </body>
+
 </html>
