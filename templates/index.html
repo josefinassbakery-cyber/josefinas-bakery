@@ -265,7 +265,10 @@ function render(){
 
         onchange="
 
-          cart[${i}].qty = Math.max(1, Number(this.value) || 1);
+          cart[${i}].qty = Math.max(
+            1,
+            Number(this.value) || 1
+          );
 
           render();
 
@@ -324,7 +327,7 @@ function render(){
 
         onchange="
 
-          pays[${i].amount}=Math.max(
+          pays[${i}].amount = Math.max(
             0,
             Number(this.value) || 0
           );
