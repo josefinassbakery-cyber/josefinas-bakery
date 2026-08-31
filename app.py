@@ -10,6 +10,16 @@ DB = os.path.join(BASE, "josefinas_bakery.db")
 app = Flask(__name__)
 
 
+class SafeOrder(dict):
+    """Evita que Jinja confunda la clave "items" con dict.items()."""
+
+    @property
+    def items(self):
+        return dict.get(self, "items", [])
+
+
+
+
 # ============================================================
 # PRODUCTOS
 # ============================================================
@@ -313,19 +323,23 @@ def home():
 
         result.append(
 
-            dict(
+            SafeOrder(
 
-                o,
+                dict(
 
-                items=[dict(i) for i in items],
+                    o,
 
-                payments=[dict(p) for p in pays],
+                    items=[dict(i) for i in items],
 
-                total=total,
+                    payments=[dict(p) for p in pays],
 
-                paid=paid,
+                    total=total,
 
-                balance=max(0, total - paid)
+                    paid=paid,
+
+                    balance=max(0, total - paid)
+
+                )
 
             )
 
