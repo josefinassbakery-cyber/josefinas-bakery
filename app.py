@@ -10,6 +10,10 @@ DB = os.path.join(BASE, "josefinas_bakery.db")
 app = Flask(__name__)
 
 
+# ============================================================
+# PRODUCTOS
+# ============================================================
+
 PRODUCTS = [
 
     # =========================
@@ -106,6 +110,28 @@ PRODUCTS = [
 ]
 
 
+# ============================================================
+# PROMOCIONES
+# ============================================================
+
+PROMOTIONS = [
+
+    {
+        "id": "promo_pan_queso_grande_16",
+        "name": 'Promo Pan de Queso Grande 16" — Piñita gratis',
+        "price": 20.00,
+        "description": 'Pan de queso grande 16" + 1 pack de Piñitas gratis',
+        "includes": 'Incluye 1 pack de Piñitas gratis',
+        "active": True
+    }
+
+]
+
+
+# ============================================================
+# BASE DE DATOS
+# ============================================================
+
 def db():
 
     c = sqlite3.connect(DB)
@@ -118,6 +144,8 @@ def db():
 def init():
 
     c = db()
+
+    c.execute("PRAGMA foreign_keys = ON")
 
     c.executescript("""
 
@@ -150,6 +178,12 @@ def init():
 
         unit_price REAL NOT NULL,
 
+        promotion_id TEXT DEFAULT '',
+
+        promotion_name TEXT DEFAULT '',
+
+        promotion_description TEXT DEFAULT '',
+
         FOREIGN KEY(order_id)
 
         REFERENCES orders(id)
@@ -179,6 +213,36 @@ def init():
 
     """)
 
+    # --------------------------------------------------------
+    # MIGRACIÓN SEGURA
+    # Si la base de datos ya existía con la tabla items vieja,
+    # agregamos las columnas de promoción sin borrar pedidos.
+    # --------------------------------------------------------
+
+    columns = {
+        row["name"]
+        for row in c.execute("PRAGMA table_info(items)").fetchall()
+    }
+
+    if "promotion_id" not in columns:
+
+        c.execute(
+            "ALTER TABLE items ADD COLUMN promotion_id TEXT DEFAULT ''"
+        )
+
+    if "promotion_name" not in columns:
+
+        c.execute(
+            "ALTER TABLE items ADD COLUMN promotion_name TEXT DEFAULT ''"
+        )
+
+    if "promotion_description" not in columns:
+
+        c.execute(
+            "ALTER TABLE items ADD COLUMN promotion_description TEXT DEFAULT ''"
+        )
+
+
     c.commit()
 
     c.close()
@@ -189,6 +253,10 @@ def init():
 # la aplicación usando Gunicorn.
 init()
 
+
+# ============================================================
+# INICIO / PEDIDOS
+# ============================================================
 
 @app.route("/")
 def home():
@@ -273,15 +341,21 @@ def home():
 
         orders=result,
 
-        products=PRODUCTS
+        products=PRODUCTS,
+
+        promotions=PROMOTIONS
 
     )
 
 
+# ============================================================
+# CREAR PEDIDO
+# ============================================================
+
 @app.post("/orders")
 def create_order():
 
-    data = request.get_json()
+    data = request.get_json() or {}
 
     c = db()
 
@@ -354,11 +428,17 @@ def create_order():
 
                 qty,
 
-                unit_price
+                unit_price,
+
+                promotion_id,
+
+                promotion_name,
+
+                promotion_description
 
             )
 
-            VALUES(?,?,?,?)
+            VALUES(?,?,?,?,?,?,?)
 
             """,
 
@@ -370,7 +450,13 @@ def create_order():
 
                 int(i["qty"]),
 
-                float(i["unit_price"])
+                float(i["unit_price"]),
+
+                i.get("promotion_id", ""),
+
+                i.get("promotion_name", ""),
+
+                i.get("promotion_description", "")
 
             )
 
@@ -428,10 +514,14 @@ def create_order():
     )
 
 
+# ============================================================
+# ACTUALIZAR PEDIDO
+# ============================================================
+
 @app.post("/orders/<int:oid>")
 def update_order(oid):
 
-    data = request.get_json()
+    data = request.get_json() or {}
 
     c = db()
 
@@ -505,11 +595,17 @@ def update_order(oid):
 
                 qty,
 
-                unit_price
+                unit_price,
+
+                promotion_id,
+
+                promotion_name,
+
+                promotion_description
 
             )
 
-            VALUES(?,?,?,?)
+            VALUES(?,?,?,?,?,?,?)
 
             """,
 
@@ -521,7 +617,13 @@ def update_order(oid):
 
                 int(i["qty"]),
 
-                float(i["unit_price"])
+                float(i["unit_price"]),
+
+                i.get("promotion_id", ""),
+
+                i.get("promotion_name", ""),
+
+                i.get("promotion_description", "")
 
             )
 
@@ -577,6 +679,10 @@ def update_order(oid):
     )
 
 
+# ============================================================
+# ELIMINAR PEDIDO
+# ============================================================
+
 @app.delete("/orders/<int:oid>")
 def delete_order(oid):
 
@@ -625,6 +731,10 @@ def delete_order(oid):
 
     )
 
+
+# ============================================================
+# EJECUCIÓN LOCAL / RENDER
+# ============================================================
 
 if __name__ == "__main__":
 
