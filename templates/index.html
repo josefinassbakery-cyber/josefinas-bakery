@@ -321,15 +321,7 @@ button{
 </header>
 
 
-<header>
-
-  <h1>Josefina's Bakery 🥖</h1>
-
-  <div>
-    Panes, café y más · Horneamos con amor
-  </div>
-
-</header><main>
+<main>
 <section>
 <h2 id="formTitle">Nuevo pedido</h2>
 <input id="client" placeholder="Cliente">
@@ -412,7 +404,82 @@ function cancelEdit(){editingOrderId=null;cart=[emptyProduct()];promos=[];pays=[
 async function removeOrder(id){if(!confirm('¿Eliminar este pedido definitivamente?'))return;const r=await fetch('/orders/'+id,{method:'DELETE'});if(r.ok)location.reload();else alert('No se pudo eliminar el pedido.')}
 cart=[emptyProduct()];render();
 const ordersData=[{% for o in orders %}{id:{{o.id}},client:{{o.client|tojson}},delivery_date:{{o.delivery_date|tojson}},status:{{o.status|tojson}},notes:{{o.notes|tojson}},total:{{o.total}},paid:{{o.paid}},balance:{{o.balance}},items:{{o.items|tojson}},payments:{{o.payments|tojson}}}{% if not loop.last %},{% endif %}{% endfor %}];
-document.getElementById('orders').innerHTML=ordersData.map(order=>{const total=Number(order.total||0),paid=Number(order.paid||0),balance=Number(order.balance||0);const ps=total>0&&paid>=total?'Pagado':paid>0?'Pago parcial':'No pagado';const prod=(order.items||[]).filter(x=>!x.promotion_id).map(x=>`<div>${x.qty} × ${x.product} — ${money(Number(x.qty)*Number(x.unit_price))}</div>`).join(''),promo=(order.items||[]).filter(x=>x.promotion_id).map(x=>`<div>🎁 ${x.qty} × ${x.promotion_name||x.product} — ${money(Number(x.qty)*Number(x.unit_price))}${x.promotion_description?`<br><small>${x.promotion_description}</small>`:''}</div>`).join(''),pay=(order.payments||[]).map(x=>`<div>${x.method}: ${money(x.amount)}</div>`).join('');return `<div class="card"><h3>Pedido #${order.id}</h3><b>${order.client}</b><br><br>${prod?`<b>Productos</b>${prod}`:''}${promo?`<br><b>🎁 Promociones</b>${promo}`:''}${!prod&&!promo?'Sin productos':''}<br><span class="tag">📅 ${order.delivery_date}</span><span class="tag">📌 ${order.status}</span><span class="tag">💰 Total ${money(total)}</span><span class="tag">💵 Pagado ${money(paid)}</span><span class="tag">Saldo ${money(balance)}</span><div class="payment-status">Estado de pago: ${ps}</div>${pay?`<br><br><b>Pagos:</b>${pay}`:''}${order.notes?`<br><br>📝 ${order.notes}`:''}<div class="order-buttons"><button class="secondary" onclick='editOrder(${JSON.stringify(order)})'>✏️ Editar</button><button class="danger" onclick="removeOrder(${order.id})">🗑️ Eliminar</button></div></div>`}).join('');
+document.getElementById('orders').innerHTML=ordersData.map(order=>{
+  const total=Number(order.total||0),
+        paid=Number(order.paid||0),
+        balance=Number(order.balance||0);
+
+  const ps=total>0&&paid>=total?'Pagado':paid>0?'Pago parcial':'No pagado';
+
+  const prod=(order.items||[])
+    .filter(x=>!x.promotion_id)
+    .map(x=>`<div>${x.qty} × ${x.product} — ${money(Number(x.qty)*Number(x.unit_price))}</div>`)
+    .join('');
+
+  const promo=(order.items||[])
+    .filter(x=>x.promotion_id)
+    .map(x=>`<div>🎁 ${x.qty} × ${x.promotion_name||x.product} — ${money(Number(x.qty)*Number(x.unit_price))}${x.promotion_description?`<br><small>${x.promotion_description}</small>`:''}</div>`)
+    .join('');
+
+  const pay=(order.payments||[])
+    .map(x=>`<span class="tag">${x.method}: ${money(x.amount)}</span>`)
+    .join('');
+
+  return `<div class="card">
+    <h3 style="margin-top:0">Pedido #${order.id} · ${order.client}</h3>
+
+    <div class="item">
+      <b>📅 Fecha de entrega</b><br>
+      ${order.delivery_date}
+    </div>
+
+    <div class="item">
+      <b>📌 Estado del pedido</b><br>
+      <span class="tag">${order.status}</span>
+    </div>
+
+    <div class="item">
+      <b>🧾 Total de la factura</b><br>
+      ${money(total)}
+    </div>
+
+    <div class="item">
+      <b>💵 Adelanto pagado</b><br>
+      ${money(paid)}
+    </div>
+
+    <div class="item">
+      <b>💳 Saldo restante</b><br>
+      ${money(balance)}
+    </div>
+
+    <div class="item">
+      <b>📊 Estado de pago</b><br>
+      <span class="payment-status">${ps}</span>
+    </div>
+
+    <div class="item">
+      <b>💰 Método(s) de pago</b><br>
+      ${pay || 'Sin pago registrado'}
+    </div>
+
+    <div class="item">
+      <b>🛒 Productos</b><br>
+      ${prod || 'Sin productos'}
+      ${promo?`<br><b>🎁 Promociones</b>${promo}`:''}
+    </div>
+
+    <div class="item">
+      <b>📝 Nota</b><br>
+      ${order.notes || 'Sin notas'}
+    </div>
+
+    <div class="order-buttons">
+      <button class="secondary" onclick='editOrder(${JSON.stringify(order)})'>✏️ Editar</button>
+      <button class="danger" onclick="removeOrder(${order.id})">🗑️ Eliminar</button>
+    </div>
+  </div>`;
+}).join('');
 </script>
 </body>
 
