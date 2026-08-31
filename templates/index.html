@@ -223,6 +223,17 @@ button{
 }
 
 
+.promotion-section{
+  margin-top:18px;
+  border-top:2px solid var(--l);
+  padding-top:8px;
+}
+
+.promotion-item{
+  padding:12px 0;
+  border-bottom:1px solid #eee;
+}
+
 .payment{
 
   padding:10px 0;
@@ -367,23 +378,42 @@ button{
   </div>
 
   <div style="margin-top:10px">
-
-    <b>
-      Subtotal productos:
-    </b>
-
+    <b>Subtotal productos:</b>
     <span id="productsSubtotal">$0.00</span>
-
   </div>
 
 </div>
 
 
-<h3>
+<section class="promotion-section">
 
+  <h3>🎁 Promociones</h3>
+
+  <div id="promotionsItems"></div>
+
+  <button class="secondary" type="button" onclick="addPromotion()">
+    ➕ Agregar promoción
+  </button>
+
+  <div class="products-summary">
+    <div class="products-summary-title">
+      Resumen de promociones
+    </div>
+    <div id="promotionSummary">
+      Sin promociones
+    </div>
+    <div style="margin-top:10px">
+      <b>Subtotal promociones:</b>
+      <span id="promotionsSubtotal">$0.00</span>
+    </div>
+  </div>
+
+</section>
+
+
+<h3>
   Total:
   <span id="total">$0.00</span>
-
 </h3>
 
 
@@ -530,6 +560,8 @@ const products = {{products|tojson}};
 
 let cart = [];
 
+let promoCart = [];
+
 let pays = [];
 
 let editingOrderId = null;
@@ -572,59 +604,47 @@ window.promotions =
   {{promotions|default([], true)|tojson}};
 
 
+function emptyPromotion(){
+  return {
+    promotion_id:'',
+    promotion_name:'',
+    promotion_description:'',
+    qty:1,
+    unit_price:0
+  };
+}
+
 function changePromotion(index, promotionId){
-
   if(!promotionId){
-
-    cart[index].promotion_id = '';
-
-    cart[index].promotion_name = '';
-
-    cart[index].promotion_description = '';
-
+    promoCart[index] = emptyPromotion();
     render();
-
     return;
-
   }
 
+  const promo = (window.promotions || []).find(p => p.id === promotionId);
+  if(!promo){ return; }
 
-  const promo =
-    (window.promotions || []).find(
-      p => p.id === promotionId
-    );
-
-
-  if(!promo){
-
-    return;
-
-  }
-
-
-  cart[index].product =
-    promo.name;
-
-  cart[index].qty =
-    1;
-
-  cart[index].unit_price =
-    Number(promo.price) || 0;
-
-  cart[index].promotion_id =
-    promo.id;
-
-  cart[index].promotion_name =
-    promo.name;
-
-  cart[index].promotion_description =
-    promo.includes ||
-    promo.description ||
-    '';
-
-
+  promoCart[index].promotion_id = promo.id;
+  promoCart[index].promotion_name = promo.name;
+  promoCart[index].promotion_description = promo.includes || promo.description || '';
+  promoCart[index].qty = 1;
+  promoCart[index].unit_price = Number(promo.price) || 0;
   render();
+}
 
+function addPromotion(){
+  promoCart.push(emptyPromotion());
+  render();
+}
+
+function deletePromotion(index){
+  promoCart.splice(index,1);
+  render();
+}
+
+function changePromotionQty(index,value){
+  promoCart[index].qty = Math.max(1, Number(value) || 1);
+  render();
 }
 
 
@@ -780,6 +800,8 @@ function statusChanged(){
 
       cart = [];
 
+      promoCart = [];
+
       pays = [];
 
       render();
@@ -802,204 +824,96 @@ function statusChanged(){
 
 function render(){
 
-  const itemsContainer =
-    document.getElementById('items');
+  const itemsContainer = document.getElementById('items');
 
+  itemsContainer.innerHTML = cart.map((x,i) => {
 
-  itemsContainer.innerHTML =
-    cart.map((x,i) => {
+    let productOptions = `
+      <option value="" ${x.product === '' ? 'selected' : ''}>
+        Seleccione un producto
+      </option>
+    `;
 
-      let productOptions = `
-
-        <option value=""
-          ${x.product === ''
-            ? 'selected'
-            : ''}
-        >
-
-          Seleccione un producto
-
+    products.forEach(p => {
+      const selected = p[0] === x.product ? 'selected' : '';
+      productOptions += `
+        <option value="${p[0]}" ${selected}>
+          ${p[0]} — ${money(p[1])}
         </option>
-
       `;
+    });
 
+    const subtotal = Number(x.qty || 0) * Number(x.unit_price || 0);
 
-      products.forEach(p => {
+    return `
+      <div class="item">
+        <label>Producto</label>
+        <select onchange="changeProduct(${i}, this.value)">
+          ${productOptions}
+        </select>
 
-        const selected =
-          p[0] === x.product
-            ? 'selected'
-            : '';
-
-
-        productOptions += `
-
-          <option
-            value="${p[0]}"
-            ${selected}
-          >
-
-            ${p[0]} — ${money(p[1])}
-
-          </option>
-
-        `;
-
-      });
-
-
-      /* =========================
-         PROMOCIONES
-         ========================= */
-
-      let promotionOptions = `
-
-        <option value=""
-          ${x.promotion_id
-            ? ''
-            : 'selected'}
-        >
-
-          Seleccione una promoción
-
-        </option>
-
-      `;
-
-
-      (window.promotions || []).forEach(promo => {
-
-        const selected =
-          x.promotion_id === promo.id
-            ? 'selected'
-            : '';
-
-
-        promotionOptions += `
-
-          <option
-            value="${promo.id}"
-            ${selected}
-          >
-
-            ${promo.name} — ${money(promo.price)}
-
-          </option>
-
-        `;
-
-      });
-
-
-      const subtotal =
-        Number(x.qty || 0) *
-        Number(x.unit_price || 0);
-
-
-      const promotionInfo =
-        x.promotion_id &&
-        x.promotion_description
-          ? `
-            <div class="promotion-info">
-
-              🎁
-              ${x.promotion_description}
-
-            </div>
-          `
-          : '';
-
-
-      return `
-
-        <div class="item">
-
-          <label>
-            Producto
-          </label>
-
-          <select
-            onchange="
-              changeProduct(
-                ${i},
-                this.value
-              )
-            "
-          >
-
-            ${productOptions}
-
-          </select>
-
-
-          <label>
-            Promoción
-          </label>
-
-          <select
-            onchange="
-              changePromotion(
-                ${i},
-                this.value
-              )
-            "
-          >
-
-            ${promotionOptions}
-
-          </select>
-
-
-          ${promotionInfo}
-
-
-          <div class="item-actions">
-
-            <label>
-              Cantidad:
-            </label>
-
-            <input
-              type="number"
-              min="1"
-              value="${x.qty}"
-              style="max-width:120px"
-              onchange="
-                changeQty(
-                  ${i},
-                  this.value
-                )
-              "
-            >
-
-
-            <button
-              class="danger"
-              type="button"
-              onclick="
-                deleteItem(${i})
-              "
-            >
-
-              🗑️ Eliminar producto
-
-            </button>
-
-          </div>
-
-
-          <div class="subtotal">
-
-            Subtotal:
-            ${money(subtotal)}
-
-          </div>
-
+        <div class="item-actions">
+          <label>Cantidad:</label>
+          <input type="number" min="1" value="${x.qty}" style="max-width:120px" onchange="changeQty(${i}, this.value)">
+          <button class="danger" type="button" onclick="deleteItem(${i})">
+            🗑️ Eliminar producto
+          </button>
         </div>
 
-      `;
+        <div class="subtotal">
+          Subtotal: ${money(subtotal)}
+        </div>
+      </div>
+    `;
+  }).join('');
 
-    }).join('');
+
+  const promotionsContainer = document.getElementById('promotionsItems');
+
+  promotionsContainer.innerHTML = promoCart.map((x,i) => {
+
+    let promotionOptions = `
+      <option value="" ${x.promotion_id ? '' : 'selected'}>
+        Seleccione una promoción
+      </option>
+    `;
+
+    (window.promotions || []).forEach(promo => {
+      const selected = x.promotion_id === promo.id ? 'selected' : '';
+      promotionOptions += `
+        <option value="${promo.id}" ${selected}>
+          ${promo.name} — ${money(promo.price)}
+        </option>
+      `;
+    });
+
+    const subtotal = Number(x.qty || 0) * Number(x.unit_price || 0);
+    const promotionInfo = x.promotion_id && x.promotion_description
+      ? `<div class="promotion-info">🎁 ${x.promotion_description}</div>`
+      : '';
+
+    return `
+      <div class="promotion-item">
+        <label>Promoción</label>
+        <select onchange="changePromotion(${i}, this.value)">
+          ${promotionOptions}
+        </select>
+        ${promotionInfo}
+
+        <div class="item-actions">
+          <label>Cantidad:</label>
+          <input type="number" min="1" value="${x.qty}" style="max-width:120px" onchange="changePromotionQty(${i}, this.value)">
+          <button class="danger" type="button" onclick="deletePromotion(${i})">
+            🗑️ Eliminar promoción
+          </button>
+        </div>
+
+        <div class="subtotal">
+          Subtotal: ${money(subtotal)}
+        </div>
+      </div>
+    `;
+  }).join('');
 
 
   /* =========================
@@ -1121,122 +1035,49 @@ function render(){
      TOTALES
      ========================= */
 
-  const totalAmount =
-    cart.reduce(
+  const productsTotal = cart.reduce((sum,item) => {
+    if(!item.product) return sum;
+    return sum + Number(item.qty || 0) * Number(item.unit_price || 0);
+  },0);
 
-      (sum,item) => {
+  const promotionsTotal = promoCart.reduce((sum,item) => {
+    if(!item.promotion_id) return sum;
+    return sum + Number(item.qty || 0) * Number(item.unit_price || 0);
+  },0);
 
-        return sum +
-          (
-            Number(item.qty || 0) *
-            Number(item.unit_price || 0)
-          );
+  const totalAmount = productsTotal + promotionsTotal;
 
-      },
+  const paidAmount = pays.reduce((sum,payment) => {
+    return sum + Number(payment.amount || 0);
+  },0);
 
-      0
+  const balanceAmount = Math.max(0,totalAmount - paidAmount);
 
-    );
+  const validItems = cart.filter(item => item.product);
 
+  const summary = validItems.length
+    ? validItems.map(item => {
+        const itemSubtotal = Number(item.qty || 0) * Number(item.unit_price || 0);
+        return `<div>${item.product} × ${item.qty} = ${money(itemSubtotal)}</div>`;
+      }).join('')
+    : 'Sin productos';
 
-  const paidAmount =
-    pays.reduce(
+  const validPromotions = promoCart.filter(item => item.promotion_id);
 
-      (sum,payment) => {
+  const promotionSummary = validPromotions.length
+    ? validPromotions.map(item => {
+        const itemSubtotal = Number(item.qty || 0) * Number(item.unit_price || 0);
+        return `<div>🎁 ${item.promotion_name} × ${item.qty} = ${money(itemSubtotal)}</div>`;
+      }).join('')
+    : 'Sin promociones';
 
-        return sum +
-          Number(
-            payment.amount || 0
-          );
-
-      },
-
-      0
-
-    );
-
-
-  const balanceAmount =
-    Math.max(
-      0,
-      totalAmount - paidAmount
-    );
-
-
-  /* =========================
-     RESUMEN GENERAL
-     ========================= */
-
-  const validItems =
-    cart.filter(
-      item => item.product
-    );
-
-
-  const summary =
-    validItems.length
-
-      ? validItems.map(
-          item => {
-
-            const itemSubtotal =
-              Number(item.qty || 0) *
-              Number(item.unit_price || 0);
-
-
-            return `
-
-              <div>
-
-                ${item.product}
-                × ${item.qty}
-                = ${money(itemSubtotal)}
-
-                ${
-                  item.promotion_description
-                    ? `
-                      <small>
-                        🎁 ${item.promotion_description}
-                      </small>
-                    `
-                    : ''
-                }
-
-              </div>
-
-            `;
-
-          }
-        ).join('')
-
-      : 'Sin productos';
-
-
-  document.getElementById(
-    'productSummary'
-  ).innerHTML =
-    summary;
-
-
-  document.getElementById(
-    'productsSubtotal'
-  ).textContent =
-    money(totalAmount);
-
-
-  document.getElementById('total')
-    .textContent =
-      money(totalAmount);
-
-
-  document.getElementById('paid')
-    .textContent =
-      money(paidAmount);
-
-
-  document.getElementById('balance')
-    .textContent =
-      money(balanceAmount);
+  document.getElementById('productSummary').innerHTML = summary;
+  document.getElementById('productsSubtotal').textContent = money(productsTotal);
+  document.getElementById('promotionSummary').innerHTML = promotionSummary;
+  document.getElementById('promotionsSubtotal').textContent = money(promotionsTotal);
+  document.getElementById('total').textContent = money(totalAmount);
+  document.getElementById('paid').textContent = money(paidAmount);
+  document.getElementById('balance').textContent = money(balanceAmount);
 
 
   /* =========================
@@ -1317,31 +1158,13 @@ async function save(){
      debe tener productos válidos.
   */
 
+  const validProducts = cart.filter(item => item.product);
+  const validPromotions = promoCart.filter(item => item.promotion_id);
+
   if(status !== 'Cancelado'){
-
-    if(!cart.length){
-
-      return alert(
-        'Agrega al menos un producto.'
-      );
-
+    if(validProducts.length === 0 && validPromotions.length === 0){
+      return alert('Agrega al menos un producto o una promoción.');
     }
-
-
-    const invalidProduct =
-      cart.some(
-        item => !item.product
-      );
-
-
-    if(invalidProduct){
-
-      return alert(
-        'Selecciona un producto en cada línea antes de guardar.'
-      );
-
-    }
-
   }
 
 
@@ -1350,7 +1173,10 @@ async function save(){
      todo queda en cero.
   */
 
-  let itemsToSave = cart;
+  let itemsToSave = [
+    ...validProducts,
+    ...validPromotions
+  ];
 
   let paymentsToSave = pays;
 
@@ -1482,33 +1308,31 @@ function editOrder(order){
 
 
   cart =
-    (order.items || []).map(
-      item => ({
-
+    (order.items || [])
+      .filter(item => !item.promotion_id)
+      .map(item => ({
         product:item.product,
-
         qty:Number(item.qty),
+        unit_price:Number(item.unit_price),
+        promotion_id:'',
+        promotion_name:'',
+        promotion_description:''
+      }));
 
-        unit_price:
-          Number(item.unit_price),
-
-        promotion_id:
-          item.promotion_id || '',
-
-        promotion_name:
-          item.promotion_name || '',
-
-        promotion_description:
-          item.promotion_description || ''
-
-      })
-    );
-
+  promoCart =
+    (order.items || [])
+      .filter(item => item.promotion_id)
+      .map(item => ({
+        promotion_id:item.promotion_id,
+        promotion_name:item.promotion_name || item.product,
+        promotion_description:item.promotion_description || '',
+        qty:Number(item.qty),
+        unit_price:Number(item.unit_price)
+      }));
 
   if(order.status === 'Cancelado'){
-
     cart = [];
-
+    promoCart = [];
   }
 
 
@@ -1534,7 +1358,8 @@ function editOrder(order){
 
   if(
     order.status !== 'Cancelado' &&
-    cart.length === 0
+    cart.length === 0 &&
+    promoCart.length === 0
   ){
 
     cart.push(
@@ -1581,6 +1406,8 @@ function cancelEdit(){
   cart = [
     emptyProduct()
   ];
+
+  promoCart = [];
 
   pays = [];
 
@@ -1684,6 +1511,8 @@ cart = [
   emptyProduct()
 ];
 
+promoCart = [];
+
 pays = [];
 
 render();
@@ -1771,36 +1600,29 @@ document.getElementById(
     }
 
 
-    const itemsHtml =
-      (order.items || []).map(
-        item => `
+    const productItems = (order.items || []).filter(item => !item.promotion_id);
+    const promotionItems = (order.items || []).filter(item => item.promotion_id);
 
+    const itemsHtml = productItems.map(item => `
+      <div>
+        ${item.qty} × ${item.product} —
+        ${money(Number(item.qty) * Number(item.unit_price))}
+      </div>
+    `).join('');
+
+    const promotionsHtml = promotionItems.length
+      ? `
+        <br>
+        <b>🎁 Promociones:</b>
+        ${promotionItems.map(item => `
           <div>
-
-            ${item.qty}
-            ×
-            ${item.product}
-            —
-            ${money(
-              Number(item.qty) *
-              Number(item.unit_price)
-            )}
-
-            ${
-              item.promotion_description
-                ? `
-                  <br>
-                  <small>
-                    🎁 ${item.promotion_description}
-                  </small>
-                `
-                : ''
-            }
-
+            ${item.qty} × ${item.promotion_name || item.product} —
+            ${money(Number(item.qty) * Number(item.unit_price))}
           </div>
-
-        `
-      ).join('');
+          <small>${item.promotion_description || ''}</small>
+        `).join('')}
+      `
+      : '';
 
 
     const paymentsHtml =
@@ -1841,6 +1663,7 @@ document.getElementById(
 
         ${itemsHtml || 'Sin productos'}
 
+        ${promotionsHtml}
 
         <br>
 
