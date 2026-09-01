@@ -205,6 +205,29 @@ th{color:var(--b)}
   main{padding:12px}
   .brand{font-size:25px}
 }
+
+.materials-tip{
+  display:flex;
+  gap:9px;
+  align-items:flex-start;
+  background:#f3e8dc;
+  border:1px solid var(--l);
+  border-left:4px solid #b47a48;
+  border-radius:14px;
+  padding:12px 14px;
+  margin:12px 0;
+  color:#5b3826;
+}
+.materials-tip span{font-weight:500;color:#6c5648}
+.material-alert{
+  background:var(--warn);
+  color:var(--warn-text);
+  border:1px solid #ead49d;
+  border-radius:12px;
+  padding:10px 12px;
+  margin:8px 0;
+  font-weight:800;
+}
 </style>
 </head>
 <body>
@@ -220,6 +243,7 @@ th{color:var(--b)}
     <button class="nav-btn" data-view="finalizados">📦 Finalizados</button>
     <button class="nav-btn" data-view="ventas">💰 Ventas</button>
     <button class="nav-btn" data-view="inventario">📋 Inventario</button>
+    <button class="nav-btn" data-view="materiales">📦 Materiales</button>
   </nav>
 </header>
 
@@ -385,6 +409,52 @@ th{color:var(--b)}
   </section>
 </section>
 
+
+<section id="view-materiales" class="view">
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>📦 Materiales de trabajo y empaque</h2>
+        <div class="small">Aquí van los materiales que usas para trabajar, hornear, envolver y empacar. No se mezclan con los ingredientes de las recetas.</div>
+      </div>
+      <button class="secondary" onclick="loadMaterials()">🔄 Actualizar</button>
+    </div>
+
+    <div class="materials-tip">
+      <b>💡 ¿Qué va aquí?</b>
+      <span>Bandejas, papel para hornear, papel film, bolsas, cajas y otros materiales de trabajo o empaque.</span>
+    </div>
+
+    <div id="materialAlerts"></div>
+
+    <div class="card">
+      <h3 id="materialFormTitle">➕ Agregar material</h3>
+      <div class="inventory-form">
+        <div><label>Categoría</label><input id="matCategory" placeholder="Ej. Empaque"></div>
+        <div class="wide"><label>Material / marca exacta</label><input id="matProduct" placeholder="Ej. Glad Cling'n Seal"></div>
+        <div><label>Presentación</label><input id="matPresentation" placeholder="2 × 400 sq ft"></div>
+        <div><label>Precio de compra ($)</label><input id="matPrice" type="number" step=".01" min="0"></div>
+        <div><label>Cantidad actual</label><input id="matCurrent" type="number" step=".01" min="0"></div>
+        <div><label>Existencia equivalente</label><input id="matEquivalent" type="number" step=".01" min="0"></div>
+        <div><label>Unidad equivalente</label><input id="matUnit" placeholder="rollos, hojas, cajas..."></div>
+        <div><label>Punto de recompra</label><input id="matReorder" type="number" step=".01" min="0"></div>
+      </div>
+      <div class="inventory-actions" style="margin-top:10px">
+        <button id="matSaveBtn" class="primary" onclick="saveMaterial()">Guardar material</button>
+        <button class="secondary" onclick="clearMaterialForm()">Limpiar</button>
+        <span class="small">Cuando la existencia llegue al punto de recompra, aparecerá una alerta.</span>
+      </div>
+    </div>
+
+    <div class="inventory-table-wrap">
+      <table>
+        <thead><tr><th>Categoría</th><th>Material / marca</th><th>Presentación</th><th>Compra</th><th>Cantidad</th><th>Existencia</th><th>Recompra</th><th></th></tr></thead>
+        <tbody id="materialTable"></tbody>
+      </table>
+    </div>
+  </section>
+</section>
+
 </main>
 
 <script>
@@ -397,6 +467,8 @@ let cart=[],promos=[],pays=[],editingOrderId=null;
 let inventoryData={{inventory|default([], true)|tojson}};
 let editingInventoryId=null;
 let recipesData={{recipes|default([], true)|tojson}};
+let materialsData={{materials|default([], true)|tojson}};
+let editingMaterialId=null;
 
 function money(n){return '$'+Number(n||0).toFixed(2)}
 function emptyProduct(){return {product:'',qty:1,unit_price:0}}
@@ -409,6 +481,7 @@ function showView(name){
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='ventas') renderSales();
   if(name==='inventario'){renderInventory();renderRecipes();}
+  if(name==='materiales'){renderMaterials();}
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 
@@ -654,6 +727,84 @@ function editInventory(x){editingInventoryId=x.id;document.getElementById('invCa
 async function saveInventory(){const data={category:document.getElementById('invCategory').value.trim(),product:document.getElementById('invProduct').value.trim(),presentation:document.getElementById('invPresentation').value.trim(),purchase_price:Number(document.getElementById('invPrice').value)||0,current_qty:Number(document.getElementById('invCurrent').value)||0,equivalent_qty:Number(document.getElementById('invEquivalent').value)||0,equivalent_unit:document.getElementById('invUnit').value.trim(),reorder_point:Number(document.getElementById('invReorder').value)||0};if(!data.category||!data.product)return alert('Agrega categoría y producto/marca.');const url=editingInventoryId?'/inventory/'+editingInventoryId:'/inventory',method=editingInventoryId?'PUT':'POST';const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!r.ok)return alert('No se pudo guardar el ingrediente.');await loadInventory();clearInventoryForm()}
 async function loadInventory(){try{const r=await fetch('/inventory');inventoryData=await r.json();renderInventory()}catch(e){alert('No se pudo cargar el inventario.')}}
 async function deleteInventory(id){if(!confirm('¿Quitar este ingrediente del inventario activo?'))return;const r=await fetch('/inventory/'+id,{method:'DELETE'});if(r.ok)await loadInventory();else alert('No se pudo quitar el ingrediente.')}
+
+function renderMaterials(){
+  const rows=materialsData||[];
+  const alerts=rows.filter(x=>Number(x.reorder_point)>0&&Number(x.equivalent_qty)<=Number(x.reorder_point));
+  document.getElementById('materialAlerts').innerHTML=alerts.length
+    ?alerts.map(x=>`<div class="material-alert">🔴 RECOMPRA: ${x.product} — ${x.presentation||'Sin presentación'} · existencia ${Number(x.equivalent_qty||0)} ${x.equivalent_unit||''} · punto de recompra ${Number(x.reorder_point||0)} ${x.equivalent_unit||''}</div>`).join('')
+    :'<div class="inventory-ok">🟢 Materiales bajo control. No hay alertas de recompra.</div>';
+
+  document.getElementById('materialTable').innerHTML=rows.length
+    ?rows.map(x=>`<tr class="${Number(x.reorder_point)>0&&Number(x.equivalent_qty)<=Number(x.reorder_point)?'inventory-low':''}">
+      <td>${x.category}</td><td><b>${x.product}</b></td><td>${x.presentation||'—'}</td>
+      <td>${money(x.purchase_price)}</td><td>${Number(x.current_qty||0)}</td>
+      <td>${Number(x.equivalent_qty||0)} ${x.equivalent_unit||''}</td>
+      <td>${Number(x.reorder_point||0)} ${x.equivalent_unit||''}</td>
+      <td><button class="secondary mini-btn" onclick='editMaterial(${JSON.stringify(x)})'>✏️</button>
+      <button class="danger mini-btn" onclick="deleteMaterial(${x.id})">🗑️</button></td>
+    </tr>`).join('')
+    :'<tr><td colspan="8">No hay materiales registrados.</td></tr>';
+}
+
+function clearMaterialForm(){
+  editingMaterialId=null;
+  ['matCategory','matProduct','matPresentation','matPrice','matCurrent','matEquivalent','matUnit','matReorder']
+    .forEach(id=>document.getElementById(id).value='');
+  document.getElementById('materialFormTitle').textContent='➕ Agregar material';
+  document.getElementById('matSaveBtn').textContent='Guardar material';
+}
+
+function editMaterial(x){
+  editingMaterialId=x.id;
+  document.getElementById('matCategory').value=x.category||'';
+  document.getElementById('matProduct').value=x.product||'';
+  document.getElementById('matPresentation').value=x.presentation||'';
+  document.getElementById('matPrice').value=x.purchase_price??'';
+  document.getElementById('matCurrent').value=x.current_qty??'';
+  document.getElementById('matEquivalent').value=x.equivalent_qty??'';
+  document.getElementById('matUnit').value=x.equivalent_unit||'';
+  document.getElementById('matReorder').value=x.reorder_point??'';
+  document.getElementById('materialFormTitle').textContent='✏️ Editar material';
+  document.getElementById('matSaveBtn').textContent='Actualizar material';
+  document.getElementById('view-materiales').scrollIntoView({behavior:'smooth'});
+}
+
+async function saveMaterial(){
+  const data={
+    category:document.getElementById('matCategory').value.trim(),
+    product:document.getElementById('matProduct').value.trim(),
+    presentation:document.getElementById('matPresentation').value.trim(),
+    purchase_price:Number(document.getElementById('matPrice').value)||0,
+    current_qty:Number(document.getElementById('matCurrent').value)||0,
+    equivalent_qty:Number(document.getElementById('matEquivalent').value)||0,
+    equivalent_unit:document.getElementById('matUnit').value.trim(),
+    reorder_point:Number(document.getElementById('matReorder').value)||0
+  };
+  if(!data.category||!data.product)return alert('Agrega categoría y material/marca.');
+  const url=editingMaterialId?'/materials/'+editingMaterialId:'/materials';
+  const method=editingMaterialId?'PUT':'POST';
+  const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  if(!r.ok)return alert('No se pudo guardar el material.');
+  await loadMaterials();
+  clearMaterialForm();
+}
+
+async function loadMaterials(){
+  try{
+    const r=await fetch('/materials');
+    if(!r.ok)throw new Error();
+    materialsData=await r.json();
+    renderMaterials();
+  }catch(e){alert('No se pudieron cargar los materiales.')}
+}
+
+async function deleteMaterial(id){
+  if(!confirm('¿Quitar este material del inventario activo?'))return;
+  const r=await fetch('/materials/'+id,{method:'DELETE'});
+  if(r.ok)await loadMaterials();else alert('No se pudo quitar el material.');
+}
+
 async function loadRecipes(){try{const r=await fetch('/recipes');if(!r.ok)throw new Error();recipesData=await r.json();renderRecipes()}catch(e){alert('No se pudieron cargar las recetas.')}}
 function renderRecipes(){const el=document.getElementById('recipeList');if(!el)return;el.innerHTML=(recipesData||[]).length?recipesData.map(r=>`<div class="card" style="margin:10px 0;background:#fbf7f1"><div class="section-head"><div><h4 style="margin:0;color:var(--b)">🥖 ${r.name}</h4><div class="small">Rinde: ${r.yield_text||'—'} · Horno: ${r.oven_temp||'—'} · Horneado: ${r.bake_time||'—'}</div></div></div><div style="overflow:auto;margin-top:8px"><table><thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Unidad</th><th>Nota</th></tr></thead><tbody>${(r.ingredients||[]).map(i=>`<tr><td>${i.ingredient_name}</td><td>${i.amount}</td><td>${i.unit}</td><td>${i.notes||''}</td></tr>`).join('')}</tbody></table></div></div>`).join(''):'<div class="empty">Todavía no hay recetas cargadas.</div>'}
 
@@ -668,6 +819,7 @@ renderOrders();
 renderSales();
 renderInventory();
 renderRecipes();
+renderMaterials();
 </script>
 </body>
 </html>
