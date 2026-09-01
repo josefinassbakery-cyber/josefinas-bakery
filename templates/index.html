@@ -164,197 +164,38 @@ button{
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px 7px;border-bottom:1px solid var(--l);text-align:left;font-size:14px}
 th{color:var(--b)}
-
 /* ============================================================
-   INICIO JOSEFINA'S BAKERY · DISEÑO ARTESANAL
+   ESTILO JOSEFINA'S · BIENVENIDA Y MEJORAS
    ============================================================ */
-.home-welcome{
-  position:relative;
-  overflow:hidden;
-  padding:0;
-  min-height:390px;
-  background:#eee2d5;
-}
-.home-photo{
-  position:relative;
-  min-height:390px;
-  display:flex;
-  align-items:flex-end;
-  background:
-    linear-gradient(90deg,rgba(55,32,21,.76) 0%,rgba(55,32,21,.45) 42%,rgba(55,32,21,.08) 78%,rgba(55,32,21,.18) 100%),
-    url('/static/josefinas-bienvenida.jpg') center/cover no-repeat;
-}
-.home-copy{
-  position:relative;
-  z-index:2;
-  max-width:590px;
-  padding:42px 34px 38px;
-  color:#fffaf3;
-  text-shadow:0 2px 12px rgba(45,25,15,.28);
-}
-.home-eyebrow{
-  display:inline-block;
-  padding:7px 12px;
-  border:1px solid rgba(255,255,255,.42);
-  border-radius:999px;
-  background:rgba(82,51,35,.38);
-  backdrop-filter:blur(5px);
-  font-size:12px;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-}
-.home-copy h1{
-  font-family:Georgia,serif;
-  font-size:clamp(31px,5vw,52px);
-  line-height:1.02;
-  margin:14px 0 10px;
-  color:#fffaf3;
-}
-.home-copy p{
-  color:#fff7ed;
-  font-size:16px;
-  line-height:1.55;
-  max-width:510px;
-}
-.daily-message{
-  margin-top:18px;
-  font-family:Georgia,serif;
-  font-size:18px;
-  font-style:italic;
-  color:#fff3df;
-}
-.coffee-scene{
-  position:absolute;
-  right:25px;
-  bottom:18px;
-  z-index:3;
-  width:128px;
-  height:118px;
-  pointer-events:none;
-}
-.coffee-cup{
-  position:absolute;
-  right:14px;
-  bottom:6px;
-  width:82px;
-  height:54px;
-  border-radius:10px 10px 28px 28px;
-  background:linear-gradient(#fbf4e9,#d9c6b3);
-  border:2px solid rgba(91,56,38,.35);
-  box-shadow:0 12px 20px rgba(42,23,14,.22);
-}
-.coffee-cup:before{
-  content:"";
-  position:absolute;
-  width:55px;
-  height:10px;
-  left:11px;
-  top:-5px;
-  border-radius:50%;
-  background:#5b3826;
-  box-shadow:inset 0 2px 3px rgba(255,255,255,.18);
-}
-.coffee-cup:after{
-  content:"";
-  position:absolute;
-  width:22px;
-  height:22px;
-  right:-20px;
-  top:10px;
-  border:5px solid #d9c6b3;
-  border-left:0;
-  border-radius:0 50% 50% 0;
-}
-.bread-mini{
-  position:absolute;
-  left:2px;
-  bottom:7px;
-  width:57px;
-  height:28px;
-  border-radius:50% 50% 45% 45%;
-  transform:rotate(-12deg);
-  background:linear-gradient(145deg,#d7a66e,#a86e3e);
-  box-shadow:0 9px 14px rgba(42,23,14,.2);
-}
-.bread-mini:after{
-  content:"";
-  position:absolute;
-  width:30px;
-  height:2px;
-  left:13px;
-  top:9px;
-  background:rgba(255,240,215,.65);
-  transform:rotate(12deg);
-  border-radius:99px;
-}
-.steam{
-  position:absolute;
-  bottom:56px;
-  right:47px;
-  width:9px;
-  height:38px;
-  border-left:2px solid rgba(255,255,255,.72);
-  border-radius:50%;
-  filter:blur(.2px);
-  animation:steam 3.2s ease-in-out infinite;
-}
-.steam.two{right:64px;height:31px;animation-delay:1s}
-.steam.three{right:33px;height:27px;animation-delay:1.8s}
-@keyframes steam{
-  0%{opacity:0;transform:translateY(9px) scale(.8) rotate(2deg)}
-  35%{opacity:.8}
-  100%{opacity:0;transform:translateY(-22px) scale(1.25) rotate(-7deg)}
-}
-.home-metrics{
-  margin-top:14px;
-}
-.metric{
-  transition:transform .2s ease,box-shadow .2s ease;
-}
-.metric:hover{
-  transform:translateY(-3px);
-  box-shadow:0 12px 26px rgba(91,56,38,.14);
-}
-.quick.home-actions{
-  grid-template-columns:repeat(5,1fr);
-}
-.home-action{
-  position:relative;
-  min-height:82px;
-  background:linear-gradient(145deg,#fffdf9,#eee2d5);
-  border:1px solid #d8c8ba !important;
-  color:var(--b) !important;
-  box-shadow:6px 6px 12px rgba(91,56,38,.13),-3px -3px 8px rgba(255,255,255,.75);
-  transition:transform .18s ease,box-shadow .18s ease;
-}
-.home-action:hover{
-  transform:translateY(-2px);
-  box-shadow:8px 9px 16px rgba(91,56,38,.17),-3px -3px 9px rgba(255,255,255,.8);
-}
-.home-action:active{
-  transform:translateY(1px);
-  box-shadow:inset 3px 3px 8px rgba(91,56,38,.14);
-}
-.home-action .action-icon{
-  display:block;
-  font-size:25px;
-  margin-bottom:4px;
-}
-.home-alerts{
-  border-left:4px solid #b47a48;
-}
-@media(max-width:760px){
-  .quick.home-actions{grid-template-columns:repeat(2,1fr)}
-  .home-copy{padding:30px 23px}
-  .coffee-scene{right:5px;opacity:.72}
-}
-@media(max-width:600px){
-  .home-photo{min-height:430px}
-  .home-copy h1{font-size:34px}
-  .home-copy{padding:26px 20px}
-  .coffee-scene{transform:scale(.8);transform-origin:bottom right}
-}
-
+.home-welcome{position:relative;overflow:hidden;padding:0;min-height:390px;background:#eee2d5}
+.home-photo{position:relative;min-height:390px;display:flex;align-items:flex-end;background:linear-gradient(90deg,rgba(55,32,21,.76) 0%,rgba(55,32,21,.45) 42%,rgba(55,32,21,.08) 78%,rgba(55,32,21,.18) 100%),url('/static/josefinas-bienvenida.jpg') center/cover no-repeat}
+.home-copy{position:relative;z-index:2;max-width:590px;padding:42px 34px 38px;color:#fffaf3;text-shadow:0 2px 12px rgba(45,25,15,.28)}
+.home-eyebrow{display:inline-block;padding:7px 12px;border:1px solid rgba(255,255,255,.42);border-radius:999px;background:rgba(82,51,35,.38);backdrop-filter:blur(5px);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.home-copy h1{font-family:Georgia,serif;font-size:clamp(31px,5vw,52px);line-height:1.02;margin:14px 0 10px;color:#fffaf3}
+.home-copy p{color:#fff7ed;font-size:16px;line-height:1.55;max-width:510px}
+.daily-message{margin-top:18px;font-family:Georgia,serif;font-size:18px;font-style:italic;color:#fff3df}
+.coffee-scene{position:absolute;right:25px;bottom:18px;z-index:3;width:128px;height:118px;pointer-events:none}
+.coffee-cup{position:absolute;right:14px;bottom:6px;width:82px;height:54px;border-radius:10px 10px 28px 28px;background:linear-gradient(#fbf4e9,#d9c6b3);border:2px solid rgba(91,56,38,.35);box-shadow:0 12px 20px rgba(42,23,14,.22)}
+.coffee-cup:before{content:"";position:absolute;width:55px;height:10px;left:11px;top:-5px;border-radius:50%;background:#5b3826;box-shadow:inset 0 2px 3px rgba(255,255,255,.18)}
+.coffee-cup:after{content:"";position:absolute;width:22px;height:22px;right:-20px;top:10px;border:5px solid #d9c6b3;border-left:0;border-radius:0 50% 50% 0}
+.bread-mini{position:absolute;left:2px;bottom:7px;width:57px;height:28px;border-radius:50% 50% 45% 45%;transform:rotate(-12deg);background:linear-gradient(145deg,#d7a66e,#a86e3e);box-shadow:0 9px 14px rgba(42,23,14,.2)}
+.bread-mini:after{content:"";position:absolute;width:30px;height:2px;left:13px;top:9px;background:rgba(255,240,215,.65);transform:rotate(12deg);border-radius:99px}
+.steam{position:absolute;bottom:56px;right:47px;width:9px;height:38px;border-left:2px solid rgba(255,255,255,.72);border-radius:50%;filter:blur(.2px);animation:steam 3.2s ease-in-out infinite}
+.steam.two{right:64px;height:31px;animation-delay:1s}.steam.three{right:33px;height:27px;animation-delay:1.8s}
+@keyframes steam{0%{opacity:0;transform:translateY(9px) scale(.8) rotate(2deg)}35%{opacity:.8}100%{opacity:0;transform:translateY(-22px) scale(1.25) rotate(-7deg)}}
+.home-metrics{margin-top:14px}.metric{transition:transform .2s ease,box-shadow .2s ease}.metric:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(91,56,38,.14)}
+.quick.home-actions{grid-template-columns:repeat(5,1fr)}
+.home-action{position:relative;min-height:82px;background:linear-gradient(145deg,#fffdf9,#eee2d5);border:1px solid #d8c8ba !important;color:var(--b) !important;box-shadow:6px 6px 12px rgba(91,56,38,.13),-3px -3px 8px rgba(255,255,255,.75);transition:transform .18s ease,box-shadow .18s ease}
+.home-action:hover{transform:translateY(-2px);box-shadow:8px 9px 16px rgba(91,56,38,.17),-3px -3px 9px rgba(255,255,255,.8)}
+.home-action:active{transform:translateY(1px);box-shadow:inset 3px 3px 8px rgba(91,56,38,.14)}
+.home-action .action-icon{display:block;font-size:25px;margin-bottom:4px}.home-alerts{border-left:4px solid #b47a48}
+.date-range{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-top:12px}.date-range label{font-size:12px;color:#735f51;font-weight:700}.date-range input{margin:4px 0 0}
+.sales-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.client-wrap{position:relative}.client-suggestions{display:none;position:absolute;z-index:20;left:0;right:0;top:100%;background:white;border:1px solid var(--l);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}.client-suggestions.show{display:block}.client-suggestion{padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee}.client-suggestion:last-child{border-bottom:0}.client-suggestion:hover{background:var(--soft)}
+.test-flag{display:flex;align-items:center;gap:8px;background:var(--warn);color:var(--warn-text);padding:10px 12px;border-radius:12px;margin:10px 0}.test-flag input{width:auto;margin:0}
+.inventory-form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.inventory-form .wide{grid-column:span 2}.inventory-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.inventory-table-wrap{overflow:auto;margin-top:14px}.inventory-alert{background:var(--danger);color:var(--danger-text);border:1px solid #e7bcbc;border-radius:12px;padding:10px 12px;margin:8px 0;font-weight:700}.inventory-ok{background:var(--ok);color:var(--ok-text);border-radius:12px;padding:10px 12px;margin:8px 0}.inventory-low{background:var(--warn);color:var(--warn-text);font-weight:800}.mini-btn{padding:7px 9px;border-radius:9px;font-size:12px}
+.promo-manager{margin-top:12px;padding-top:12px;border-top:1px solid var(--l)}.promo-form{display:grid;grid-template-columns:2fr 1fr 2fr 2fr auto;gap:8px;align-items:end}.promo-form label{font-size:12px;color:#735f51;font-weight:700}.promo-list{margin-top:12px}.promo-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #eee}.promo-row:last-child{border-bottom:0}
+@media(max-width:760px){.quick.home-actions{grid-template-columns:repeat(2,1fr)}.home-copy{padding:30px 23px}.coffee-scene{right:5px;opacity:.72}.inventory-form{grid-template-columns:1fr 1fr}.promo-form{grid-template-columns:1fr 1fr}.date-range{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.home-photo{min-height:430px}.home-copy h1{font-size:34px}.home-copy{padding:26px 20px}.coffee-scene{transform:scale(.8);transform-origin:bottom right}}
 @media(max-width:760px){
   .grid{grid-template-columns:repeat(2,1fr)}
   .quick{grid-template-columns:1fr 1fr}
@@ -393,16 +234,8 @@ th{color:var(--b)}
         <p>Un pequeño rincón para organizar tus pedidos, cuidar tus números y seguir horneando con amor.</p>
         <div id="dailyMessage" class="daily-message"></div>
       </div>
-
-      <div class="coffee-scene" aria-hidden="true">
-        <span class="steam"></span>
-        <span class="steam two"></span>
-        <span class="steam three"></span>
-        <span class="bread-mini"></span>
-        <span class="coffee-cup"></span>
-      </div>
+      <div class="coffee-scene" aria-hidden="true"><span class="steam"></span><span class="steam two"></span><span class="steam three"></span><span class="bread-mini"></span><span class="coffee-cup"></span></div>
     </div>
-
     <div class="quick home-actions" style="padding:14px">
       <button class="home-action" onclick="showView('pedidos');newOrder()"><span class="action-icon">➕</span>Nuevo pedido</button>
       <button class="home-action" onclick="showView('pedidos')"><span class="action-icon">🧾</span>Pedidos</button>
@@ -411,25 +244,15 @@ th{color:var(--b)}
       <button class="home-action" onclick="showView('inventario')"><span class="action-icon">📋</span>Inventario</button>
     </div>
   </div>
-
   <div class="grid home-metrics">
     <div class="metric"><div class="icon">💰</div><div class="label">Ventas entregadas hoy</div><div class="value">${{ '%.2f'|format(dashboard.sales_today) }}</div></div>
     <div class="metric"><div class="icon">🧾</div><div class="label">Pedidos pendientes</div><div class="value">{{ dashboard.pending_count }}</div></div>
     <div class="metric"><div class="icon">🚚</div><div class="label">Listos para entregar</div><div class="value">{{ dashboard.ready_count }}</div></div>
     <div class="metric"><div class="icon">🔔</div><div class="label">Saldo por cobrar</div><div class="value">${{ '%.2f'|format(dashboard.pending_balance) }}</div></div>
   </div>
-
-  {% if dashboard.pending_balance > 0 %}
-  <div class="alert">🔴 Atención: tienes ${{ '%.2f'|format(dashboard.pending_balance) }} pendientes por cobrar en pedidos activos.</div>
-  {% endif %}
-
+  {% if dashboard.pending_balance > 0 %}<div class="alert">🔴 Atención: tienes ${{ '%.2f'|format(dashboard.pending_balance) }} pendientes por cobrar en pedidos activos.</div>{% endif %}
   <section class="home-alerts">
-    <div class="section-head">
-      <div>
-        <h2>✨ Lo que requiere tu atención</h2>
-        <span class="small">Los pedidos entregados y cancelados pasan al historial.</span>
-      </div>
-    </div>
+    <div class="section-head"><div><h2>✨ Lo que requiere tu atención</h2><span class="small">Los pedidos entregados y cancelados pasan al historial.</span></div></div>
     <div id="homeAlerts"></div>
   </section>
 </section>
@@ -441,7 +264,7 @@ th{color:var(--b)}
       <button class="secondary" onclick="cancelEdit()">Limpiar</button>
     </div>
     <div class="row">
-      <div><label>Cliente</label><input id="client" placeholder="Nombre del cliente"></div>
+      <div class="client-wrap"><label>Cliente</label><input id="client" placeholder="Nombre del cliente" autocomplete="off" oninput="searchClients(this.value)" onfocus="searchClients(this.value)"><div id="clientSuggestions" class="client-suggestions"></div></div>
       <div><label>Fecha de entrega</label><input id="date" type="date"></div>
     </div>
 
@@ -459,7 +282,19 @@ th{color:var(--b)}
       <h3>🎁 Promociones</h3>
       <div id="promotions"></div>
       <button class="secondary" onclick="addPromotion()">➕ Agregar promoción</button>
+      <button class="secondary" type="button" onclick="togglePromotionManager()">⚙️ Administrar promociones</button>
       <div class="subtotal" style="margin-top:10px">Subtotal promociones: <span id="promotionsSubtotal">$0.00</span></div>
+      <div id="promotionManager" class="promo-manager" style="display:none">
+        <h4>🎁 Promociones del negocio</h4>
+        <div class="promo-form">
+          <div><label>Nombre</label><input id="promoName" placeholder="Ej. Pan de queso + Piñita"></div>
+          <div><label>Precio</label><input id="promoPrice" type="number" step=".01" min="0"></div>
+          <div><label>Descripción</label><input id="promoDescription" placeholder="Qué incluye"></div>
+          <div><label>Detalle</label><input id="promoIncludes" placeholder="Incluye..."></div>
+          <button class="primary" type="button" onclick="createPromotion()">Guardar</button>
+        </div>
+        <div id="promotionList" class="promo-list"></div>
+      </div>
     </div>
 
     <h3>Total: <span id="total">$0.00</span></h3>
@@ -481,6 +316,7 @@ th{color:var(--b)}
     </select>
 
     <textarea id="notes" placeholder="Notas / pedido especial"></textarea>
+    <label class="test-flag"><input id="isTest" type="checkbox"> 🧪 Este pedido es una PRUEBA (no representa dinero real)</label>
     <button id="saveButton" class="primary" onclick="save()">Guardar pedido</button>
     <button id="cancelEditButton" class="secondary" onclick="cancelEdit()" style="display:none;margin-left:6px">Cancelar edición</button>
   </section>
@@ -515,15 +351,11 @@ th{color:var(--b)}
         <h2>💰 Ventas y resumen</h2>
         <div class="small">Las ventas se calculan con pedidos marcados como Entregado. Cancelados no suman.</div>
       </div>
-      <select id="salesRange" onchange="renderSales()">
-        <option value="today">Hoy</option>
-        <option value="7">Últimos 7 días</option>
-        <option value="15">Últimos 15 días</option>
-        <option value="30">Últimos 30 días</option>
-        <option value="month">Este mes</option>
-        <option value="all">Todo</option>
-      </select>
+      <div class="sales-actions"><select id="salesRange" onchange="renderSales()">
+        <option value="today">Hoy</option><option value="7">Últimos 7 días</option><option value="15">Últimos 15 días</option><option value="30">Últimos 30 días</option><option value="month">Este mes</option><option value="all">Todo</option><option value="custom">📅 Rango personalizado</option>
+      </select></div>
     </div>
+    <div id="salesDateRange" class="date-range" style="display:none"><div><label>Desde</label><input id="salesFrom" type="date" onchange="renderSales()"></div><div><label>Hasta</label><input id="salesTo" type="date" onchange="renderSales()"></div><button class="secondary" type="button" onclick="clearSalesDates()">Limpiar fechas</button></div>
     <div class="sales-summary">
       <div class="sales-box">Ventas<strong id="salesTotal">$0.00</strong></div>
       <div class="sales-box">Pedidos entregados<strong id="salesOrders">0</strong></div>
@@ -540,11 +372,15 @@ th{color:var(--b)}
 
 <section id="view-inventario" class="view">
   <section>
-    <h2>📋 Inventario</h2>
-    <div class="empty">
-      Esta sección queda preparada para la siguiente etapa. Aquí podremos controlar ingredientes,
-      existencia, costos y alertas de compra sin tocar los pedidos que ya funcionan.
+    <div class="section-head"><div><h2>📋 Inventario</h2><div class="small">Control de ingredientes, existencias y alertas de recompra.</div></div><button class="secondary" onclick="loadInventory()">🔄 Actualizar</button></div>
+    <div id="inventoryAlerts"></div>
+    <div class="card"><h3 id="inventoryFormTitle">➕ Agregar ingrediente</h3>
+      <div class="inventory-form">
+        <div><label>Categoría</label><input id="invCategory" placeholder="Ej. Harina"></div><div class="wide"><label>Producto / marca exacta</label><input id="invProduct" placeholder="Marca y producto exactos"></div><div><label>Presentación</label><input id="invPresentation" placeholder="10 lb"></div><div><label>Precio de compra ($)</label><input id="invPrice" type="number" step=".01" min="0"></div><div><label>Cantidad actual</label><input id="invCurrent" type="number" step=".01" min="0"></div><div><label>Existencia equivalente</label><input id="invEquivalent" type="number" step=".01" min="0"></div><div><label>Unidad equivalente</label><input id="invUnit" placeholder="lb, oz, huevos..."></div><div><label>Punto de recompra</label><input id="invReorder" type="number" step=".01" min="0"></div>
+      </div>
+      <div class="inventory-actions" style="margin-top:10px"><button id="invSaveBtn" class="primary" onclick="saveInventory()">Guardar ingrediente</button><button class="secondary" onclick="clearInventoryForm()">Limpiar</button><span class="small">El punto de recompra se compara con la existencia equivalente.</span></div>
     </div>
+    <div class="inventory-table-wrap"><table><thead><tr><th>Categoría</th><th>Producto / marca</th><th>Presentación</th><th>Compra</th><th>Cantidad</th><th>Existencia</th><th>Recompra</th><th></th></tr></thead><tbody id="inventoryTable"></tbody></table></div>
   </section>
 </section>
 
@@ -557,6 +393,8 @@ const activeOrders={{active_orders|tojson}};
 const finalizedOrders={{finalized_orders|tojson}};
 const allOrders={{orders|tojson}};
 let cart=[],promos=[],pays=[],editingOrderId=null;
+let inventoryData={{inventory|default([], true)|tojson}};
+let editingInventoryId=null;
 
 function money(n){return '$'+Number(n||0).toFixed(2)}
 function emptyProduct(){return {product:'',qty:1,unit_price:0}}
@@ -568,6 +406,7 @@ function showView(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='ventas') renderSales();
+  if(name==='inventario') renderInventory();
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 
@@ -578,6 +417,8 @@ function newOrder(){
   document.getElementById('date').value='';
   document.getElementById('status').value='Pendiente de elaborar';
   document.getElementById('notes').value='';
+  document.getElementById('isTest').checked=false;
+  document.getElementById('clientSuggestions').classList.remove('show');
   document.getElementById('saveButton').textContent='Guardar pedido';
   document.getElementById('cancelEditButton').style.display='none';
   render();
@@ -665,7 +506,8 @@ async function save(){
   const client=document.getElementById('client').value.trim(),
         date=document.getElementById('date').value,
         status=document.getElementById('status').value,
-        notes=document.getElementById('notes').value;
+        notes=document.getElementById('notes').value,
+        is_test=document.getElementById('isTest').checked;
   if(!client||!date)return alert('Agrega cliente y fecha.');
   if(status!=='Cancelado'){
     cart=cart.filter(x=>x.product);promos=promos.filter(x=>x.promotion_id);
@@ -676,7 +518,7 @@ async function save(){
     ...promos.map(x=>({product:x.promotion_name,qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0,promotion_id:x.promotion_id,promotion_name:x.promotion_name,promotion_description:x.promotion_description}))
   ];
   if(status==='Cancelado'){items=[];pays=[]}
-  const payload={client,delivery_date:date,status,notes,items,payments:pays};
+  const payload={client,delivery_date:date,status,notes,is_test,items,payments:pays};
   const url=editingOrderId===null?'/orders':'/orders/'+editingOrderId;
   try{
     const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -696,6 +538,7 @@ function editOrder(order){
   document.getElementById('date').value=order.delivery_date;
   document.getElementById('status').value=order.status;
   document.getElementById('notes').value=order.notes||'';
+  document.getElementById('isTest').checked=!!Number(order.is_test||0);
   cart=[];promos=[];
   (order.items||[]).forEach(x=>x.promotion_id
     ?promos.push({promotion_id:x.promotion_id,promotion_name:x.promotion_name||x.product,promotion_description:x.promotion_description||'',qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0})
@@ -716,6 +559,7 @@ function cancelEdit(){
   document.getElementById('date').value='';
   document.getElementById('status').value='Pendiente de elaborar';
   document.getElementById('notes').value='';
+  document.getElementById('isTest').checked=false;
   document.getElementById('saveButton').textContent='Guardar pedido';
   document.getElementById('cancelEditButton').style.display='none';
   render()
@@ -746,7 +590,7 @@ function orderCard(order,finalized=false){
     <div class="item"><b>🛒 Productos</b><br>${prod||'Sin productos'}${promo?`<br><b>🎁 Promociones</b>${promo}`:''}</div>
     <div class="item"><b>📝 Nota</b><br>${order.notes||'Sin notas'}</div>
     ${finalized
-      ? `<div class="small">🔒 Pedido guardado en historial. No se muestran acciones de edición o eliminación.</div>`
+      ? (Number(order.is_test||0) ? `<div class="order-buttons"><span class="tag status-cancel">🧪 PRUEBA</span><button class="danger" onclick="removeOrder(${order.id})">🗑️ Eliminar prueba</button></div>` : `<div class="small">🔒 Pedido real guardado en historial. Protegido contra eliminación.</div>`)
       : `<div class="order-buttons">
           <button class="secondary" onclick='editOrder(${JSON.stringify(order)})'>✏️ Editar</button>
           <button class="danger" onclick="removeOrder(${order.id})">🗑️ Eliminar</button>
@@ -780,46 +624,44 @@ function localDateMinus(days){
 }
 function renderSales(){
   const range=document.getElementById('salesRange').value;
-  const delivered=allOrders.filter(o=>o.status==='Entregado');
-  const now=new Date();now.setHours(23,59,59,999);
-  let filtered=delivered;
-  if(range==='today'){
-    const today=new Date();today.setHours(0,0,0,0);
-    filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=today && new Date(o.delivery_date+'T00:00:00')<=now);
-  }else if(range==='month'){
-    const first=new Date(now.getFullYear(),now.getMonth(),1);
-    filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=first && new Date(o.delivery_date+'T00:00:00')<=now);
-  }else if(range!=='all'){
-    const first=localDateMinus(Number(range)-1);
-    filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=first && new Date(o.delivery_date+'T00:00:00')<=now);
-  }
-  const total=filtered.reduce((s,o)=>s+Number(o.total||0),0);
-  document.getElementById('salesTotal').textContent=money(total);
-  document.getElementById('salesOrders').textContent=filtered.length;
-  document.getElementById('avgTicket').textContent=money(filtered.length?total/filtered.length:0);
-  document.getElementById('salesTable').innerHTML=filtered.length
-    ?filtered.sort((a,b)=>a.delivery_date.localeCompare(b.delivery_date)||a.id-b.id).map(o=>`<tr><td>${o.delivery_date}</td><td>#${o.id}</td><td>${o.client}</td><td>${money(o.total)}</td><td>${money(o.paid)}</td></tr>`).join('')
-    :'<tr><td colspan="5">No hay ventas entregadas en este período.</td></tr>';
+  const dateRange=document.getElementById('salesDateRange');
+  dateRange.style.display=range==='custom'?'grid':'none';
+  const delivered=allOrders.filter(o=>o.status==='Entregado'&&!Number(o.is_test||0));
+  const now=new Date();now.setHours(23,59,59,999);let filtered=delivered;
+  if(range==='today'){const today=new Date();today.setHours(0,0,0,0);filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=today&&new Date(o.delivery_date+'T00:00:00')<=now)}
+  else if(range==='month'){const first=new Date(now.getFullYear(),now.getMonth(),1);filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=first&&new Date(o.delivery_date+'T00:00:00')<=now)}
+  else if(range==='custom'){
+    const from=document.getElementById('salesFrom').value,to=document.getElementById('salesTo').value;
+    if(from&&to&&from<=to)filtered=delivered.filter(o=>o.delivery_date>=from&&o.delivery_date<=to);else if(from&&to&&from>to){document.getElementById('salesTable').innerHTML='<tr><td colspan="5">La fecha Desde no puede ser posterior a Hasta.</td></tr>';document.getElementById('salesTotal').textContent=money(0);document.getElementById('salesOrders').textContent='0';document.getElementById('avgTicket').textContent=money(0);return}else filtered=[];
+  } else if(range!=='all'){const first=localDateMinus(Number(range)-1);filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=first&&new Date(o.delivery_date+'T00:00:00')<=now)}
+  const total=filtered.reduce((s,o)=>s+Number(o.total||0),0);document.getElementById('salesTotal').textContent=money(total);document.getElementById('salesOrders').textContent=filtered.length;document.getElementById('avgTicket').textContent=money(filtered.length?total/filtered.length:0);
+  document.getElementById('salesTable').innerHTML=filtered.length?filtered.slice().sort((a,b)=>a.delivery_date.localeCompare(b.delivery_date)||a.id-b.id).map(o=>`<tr><td>${o.delivery_date}</td><td>#${o.id}${Number(o.is_test||0)?' 🧪':''}</td><td>${o.client}</td><td>${money(o.total)}</td><td>${money(o.paid)}</td></tr>`).join(''):'<tr><td colspan="5">No hay ventas entregadas en este período.</td></tr>';
 }
+function clearSalesDates(){document.getElementById('salesFrom').value='';document.getElementById('salesTo').value='';renderSales()}
+async function searchClients(q){const box=document.getElementById('clientSuggestions');if(!box)return;try{const r=await fetch('/clients?q='+encodeURIComponent(q||''));const list=await r.json();if(!list.length){box.classList.remove('show');return}box.innerHTML=list.map(x=>`<div class="client-suggestion" onclick='selectClient(${JSON.stringify(x)})'><b>${x.client}</b><div class="small">${x.items&&x.items.length?'Pedido frecuente: '+x.items.map(it=>`${it.qty} × ${it.product}`).join(', '):'Cliente registrado'}</div></div>`).join('');box.classList.add('show')}catch(e){console.error(e)}}
+function selectClient(data){document.getElementById('client').value=data.client;document.getElementById('clientSuggestions').classList.remove('show');if(data.items&&data.items.length&&confirm('¿Quieres cargar el último pedido de '+data.client+' como base para este nuevo pedido?')){cart=data.items.map(x=>({product:x.product,qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0}));if(!cart.length)cart=[emptyProduct()];render()}}
+document.addEventListener('click',e=>{const wrap=document.querySelector('.client-wrap');if(wrap&&!wrap.contains(e.target))document.getElementById('clientSuggestions')?.classList.remove('show')});
+function togglePromotionManager(){const el=document.getElementById('promotionManager');el.style.display=el.style.display==='none'?'block':'none';if(el.style.display==='block')loadPromotions()}
+async function loadPromotions(){try{const r=await fetch('/promotions');const list=await r.json();window.promotions=list.filter(x=>Number(x.active)===1);render();const el=document.getElementById('promotionList');if(el)el.innerHTML=list.map(p=>`<div class="promo-row"><div><b>${p.name}</b><div class="small">${money(p.price)} · ${p.description||p.includes||'Sin detalle'}</div></div><div class="item-actions"><button class="secondary mini-btn" onclick='editPromotion(${JSON.stringify(p)})'>✏️ Editar</button>${Number(p.active)===1?`<button class="danger mini-btn" onclick="deactivatePromotion('${p.id}')">Desactivar</button>`:''}</div></div>`).join('')||'<div class="empty">No hay promociones.</div>'}catch(e){alert('No se pudieron cargar las promociones.')}}
+async function createPromotion(){const data={name:document.getElementById('promoName').value.trim(),price:Number(document.getElementById('promoPrice').value)||0,description:document.getElementById('promoDescription').value.trim(),includes:document.getElementById('promoIncludes').value.trim(),active:true};if(!data.name)return alert('Escribe el nombre de la promoción.');const r=await fetch('/promotions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(r.ok){['promoName','promoPrice','promoDescription','promoIncludes'].forEach(id=>document.getElementById(id).value='');await loadPromotions();alert('Promoción guardada.')}else alert('No se pudo guardar la promoción.')}
+async function editPromotion(p){const name=prompt('Nombre de la promoción:',p.name);if(name===null)return;const price=prompt('Precio:',p.price);if(price===null)return;const description=prompt('Descripción:',p.description||'');if(description===null)return;const includes=prompt('Detalle / incluye:',p.includes||'');if(includes===null)return;const r=await fetch('/promotions/'+encodeURIComponent(p.id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,price:Number(price)||0,description,includes,active:true})});if(r.ok)await loadPromotions();else alert('No se pudo actualizar la promoción.')}
+async function deactivatePromotion(id){if(!confirm('¿Desactivar esta promoción? Los pedidos históricos conservarán su información.'))return;const r=await fetch('/promotions/'+encodeURIComponent(id),{method:'DELETE'});if(r.ok)await loadPromotions();else alert('No se pudo desactivar.')}
+function renderInventory(){const rows=inventoryData||[];const alerts=rows.filter(x=>Number(x.reorder_point)>0&&Number(x.equivalent_qty)<=Number(x.reorder_point));document.getElementById('inventoryAlerts').innerHTML=alerts.length?alerts.map(x=>`<div class="inventory-alert">🔴 RECOMPRA: ${x.product} — ${x.presentation||'Sin presentación'} · existencia ${Number(x.equivalent_qty||0)} ${x.equivalent_unit||''} · punto de recompra ${Number(x.reorder_point||0)} ${x.equivalent_unit||''}</div>`).join(''):'<div class="inventory-ok">🟢 Inventario bajo control. No hay alertas de recompra configuradas.</div>';document.getElementById('inventoryTable').innerHTML=rows.length?rows.map(x=>`<tr class="${Number(x.reorder_point)>0&&Number(x.equivalent_qty)<=Number(x.reorder_point)?'inventory-low':''}"><td>${x.category}</td><td><b>${x.product}</b></td><td>${x.presentation||'—'}</td><td>${money(x.purchase_price)}</td><td>${Number(x.current_qty||0)}</td><td>${Number(x.equivalent_qty||0)} ${x.equivalent_unit||''}</td><td>${Number(x.reorder_point||0)} ${x.equivalent_unit||''}</td><td><button class="secondary mini-btn" onclick='editInventory(${JSON.stringify(x)})'>✏️</button> <button class="danger mini-btn" onclick="deleteInventory(${x.id})">🗑️</button></td></tr>`).join(''):'<tr><td colspan="8">No hay ingredientes en inventario.</td></tr>'}
+function clearInventoryForm(){editingInventoryId=null;['invCategory','invProduct','invPresentation','invPrice','invCurrent','invEquivalent','invUnit','invReorder'].forEach(id=>document.getElementById(id).value='');document.getElementById('inventoryFormTitle').textContent='➕ Agregar ingrediente';document.getElementById('invSaveBtn').textContent='Guardar ingrediente'}
+function editInventory(x){editingInventoryId=x.id;document.getElementById('invCategory').value=x.category||'';document.getElementById('invProduct').value=x.product||'';document.getElementById('invPresentation').value=x.presentation||'';document.getElementById('invPrice').value=x.purchase_price??'';document.getElementById('invCurrent').value=x.current_qty??'';document.getElementById('invEquivalent').value=x.equivalent_qty??'';document.getElementById('invUnit').value=x.equivalent_unit||'';document.getElementById('invReorder').value=x.reorder_point??'';document.getElementById('inventoryFormTitle').textContent='✏️ Editar ingrediente';document.getElementById('invSaveBtn').textContent='Actualizar ingrediente';document.getElementById('view-inventario').scrollIntoView({behavior:'smooth'})}
+async function saveInventory(){const data={category:document.getElementById('invCategory').value.trim(),product:document.getElementById('invProduct').value.trim(),presentation:document.getElementById('invPresentation').value.trim(),purchase_price:Number(document.getElementById('invPrice').value)||0,current_qty:Number(document.getElementById('invCurrent').value)||0,equivalent_qty:Number(document.getElementById('invEquivalent').value)||0,equivalent_unit:document.getElementById('invUnit').value.trim(),reorder_point:Number(document.getElementById('invReorder').value)||0};if(!data.category||!data.product)return alert('Agrega categoría y producto/marca.');const url=editingInventoryId?'/inventory/'+editingInventoryId:'/inventory',method=editingInventoryId?'PUT':'POST';const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!r.ok)return alert('No se pudo guardar el ingrediente.');await loadInventory();clearInventoryForm()}
+async function loadInventory(){try{const r=await fetch('/inventory');inventoryData=await r.json();renderInventory()}catch(e){alert('No se pudo cargar el inventario.')}}
+async function deleteInventory(id){if(!confirm('¿Quitar este ingrediente del inventario activo?'))return;const r=await fetch('/inventory/'+id,{method:'DELETE'});if(r.ok)await loadInventory();else alert('No se pudo quitar el ingrediente.')}
 
-const bakeryMessages = {
-  0: "Domingo: un café, un respiro y a disfrutar lo bonito de lo que haces. ☕🤎",
-  1: "Lunes: que nunca falte un café para comenzar la semana con ilusión. ☕✨",
-  2: "Martes: hoy también hay motivos para hornear algo bonito. 🥐🤎",
-  3: "Miércoles: una taza de café y seguimos creando momentos deliciosos. ☕🥖",
-  4: "Jueves: que el aroma a pan recién horneado te acompañe todo el día. 🤎",
-  5: "Viernes: endulza la vida, un pancito y un café a la vez. ☕🥐",
-  6: "Sábado: disfruta el fruto de tus manos y todo el amor que pones en cada pedido. 🤎✨"
-};
-const dailyMessageEl=document.getElementById('dailyMessage');
-if(dailyMessageEl) dailyMessageEl.textContent=bakeryMessages[new Date().getDay()];
+const bakeryMessages={0:'Domingo: un café, un respiro y a disfrutar lo bonito de lo que haces. ☕🤎',1:'Lunes: que nunca falte un café para comenzar la semana con ilusión. ☕✨',2:'Martes: hoy también hay motivos para hornear algo bonito. 🥐🤎',3:'Miércoles: una taza de café y seguimos creando momentos deliciosos. ☕🥖',4:'Jueves: que el aroma a pan recién horneado te acompañe todo el día. 🤎',5:'Viernes: endulza la vida, un pancito y un café a la vez. ☕🥐',6:'Sábado: disfruta el fruto de tus manos y todo el amor que pones en cada pedido. 🤎✨'};
+const dailyMessageEl=document.getElementById('dailyMessage');if(dailyMessageEl)dailyMessageEl.textContent=bakeryMessages[new Date().getDay()];
+
 
 cart=[emptyProduct()];
 render();
 renderOrders();
 renderSales();
+renderInventory();
 </script>
 </body>
 </html>
-
-
