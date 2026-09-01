@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -131,4 +130,479 @@ button{
 .item:last-child{border-bottom:0}
 .item-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .subtotal{font-weight:700;margin:4px 0 8px}
-.products-summary{background:var(--s);padding:12px;border-
+.products-summary{background:var(--s);padding:12px;border-radius:12px;margin:12px 0}
+.products-summary-title{font-weight:800;margin-bottom:6px}
+.promotion-info{background:#f7efe5;border:1px solid var(--l);padding:8px 10px;border-radius:10px;font-size:13px;margin:2px 0 8px}
+.payment{padding:10px 0;border-bottom:1px solid #eee}
+.payment-actions{display:flex;align-items:center;gap:8px}
+.tag{display:inline-block;background:var(--s);padding:5px 8px;border-radius:8px;font-size:12px;margin:4px 3px 0 0}
+.payment-status{display:inline-block;padding:6px 10px;border-radius:9px;background:var(--s);font-weight:700;font-size:13px;margin-top:8px}
+.order-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.order-card.finalized{opacity:.96}
+.status-ok{background:var(--ok);color:var(--ok-text)}
+.status-cancel{background:var(--danger);color:var(--danger-text)}
+.empty{
+  padding:24px;
+  text-align:center;
+  color:#78665a;
+  background:var(--soft);
+  border-radius:16px;
+}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.small{font-size:13px;color:#735f51}
+.sales-summary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.sales-box{
+  background:var(--soft);
+  border-radius:16px;
+  padding:16px;
+}
+.sales-box strong{display:block;font-size:24px;color:var(--b);margin-top:4px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 7px;border-bottom:1px solid var(--l);text-align:left;font-size:14px}
+th{color:var(--b)}
+@media(max-width:760px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .quick{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .row,.sales-summary{grid-template-columns:1fr}
+  main{padding:12px}
+  .brand{font-size:25px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">Josefina's Bakery 🥖</div>
+    <div class="tagline">Panes, café y más · Horneamos con amor 🤎</div>
+  </div>
+  <nav id="mainNav">
+    <button class="nav-btn active" data-view="inicio">🏠 Inicio</button>
+    <button class="nav-btn" data-view="pedidos">🧾 Pedidos</button>
+    <button class="nav-btn" data-view="finalizados">📦 Finalizados</button>
+    <button class="nav-btn" data-view="ventas">💰 Ventas</button>
+    <button class="nav-btn" data-view="inventario">📋 Inventario</button>
+  </nav>
+</header>
+
+<main>
+
+<section id="view-inicio" class="view active">
+  <div class="hero">
+    <h1>Bienvenida a Josefina's Bakery 🤎</h1>
+    <p>Tu panadería, tus pedidos y tus números, todo en un solo lugar.</p>
+    <div class="quick">
+      <button class="primary" onclick="showView('pedidos');newOrder()">➕ Nuevo pedido</button>
+      <button class="secondary" onclick="showView('pedidos')">🧾 Ver pedidos</button>
+      <button class="secondary" onclick="showView('finalizados')">📦 Historial</button>
+      <button class="secondary" onclick="showView('ventas')">💰 Ver ventas</button>
+      <button class="secondary" onclick="showView('inventario')">📋 Inventario</button>
+      <button class="secondary" onclick="showView('pedidos');window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})">🔔 Revisar pendientes</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="metric"><div class="icon">💰</div><div class="label">Ventas entregadas hoy</div><div class="value">${{ '%.2f'|format(dashboard.sales_today) }}</div></div>
+    <div class="metric"><div class="icon">🧾</div><div class="label">Pedidos pendientes</div><div class="value">{{ dashboard.pending_count }}</div></div>
+    <div class="metric"><div class="icon">🚚</div><div class="label">Listos para entregar</div><div class="value">{{ dashboard.ready_count }}</div></div>
+    <div class="metric"><div class="icon">🔔</div><div class="label">Saldo por cobrar</div><div class="value">${{ '%.2f'|format(dashboard.pending_balance) }}</div></div>
+  </div>
+
+  {% if dashboard.pending_balance > 0 %}
+  <div class="alert">🔴 Atención: tienes ${{ '%.2f'|format(dashboard.pending_balance) }} pendientes por cobrar en pedidos activos.</div>
+  {% endif %}
+
+  <section>
+    <div class="section-head">
+      <h2>Lo que requiere tu atención</h2>
+      <span class="small">Los pedidos entregados y cancelados pasan al historial.</span>
+    </div>
+    <div id="homeAlerts"></div>
+  </section>
+</section>
+
+<section id="view-pedidos" class="view">
+  <section id="orderFormSection">
+    <div class="section-head">
+      <h2 id="formTitle">Nuevo pedido</h2>
+      <button class="secondary" onclick="cancelEdit()">Limpiar</button>
+    </div>
+    <div class="row">
+      <div><label>Cliente</label><input id="client" placeholder="Nombre del cliente"></div>
+      <div><label>Fecha de entrega</label><input id="date" type="date"></div>
+    </div>
+
+    <h3>Productos</h3>
+    <div id="items"></div>
+    <button class="secondary" onclick="addItem()">➕ Agregar producto</button>
+
+    <div class="products-summary">
+      <div class="products-summary-title">Resumen de productos</div>
+      <div id="productSummary">Sin productos</div>
+      <div style="margin-top:10px"><b>Subtotal productos:</b> <span id="productsSubtotal">$0.00</span></div>
+    </div>
+
+    <div class="card">
+      <h3>🎁 Promociones</h3>
+      <div id="promotions"></div>
+      <button class="secondary" onclick="addPromotion()">➕ Agregar promoción</button>
+      <div class="subtotal" style="margin-top:10px">Subtotal promociones: <span id="promotionsSubtotal">$0.00</span></div>
+    </div>
+
+    <h3>Total: <span id="total">$0.00</span></h3>
+
+    <h3>Pagos</h3>
+    <div id="payments"></div>
+    <button class="secondary" onclick="addPayment()">➕ Agregar pago</button>
+    <div>Pagado: <b id="paid">$0.00</b> · Saldo: <b id="balance">$0.00</b></div>
+    <div>Estado del pago: <b id="paymentStatus">No pagado</b></div>
+
+    <br>
+    <label>Estado del pedido</label>
+    <select id="status" onchange="statusChanged()">
+      <option>Pendiente de elaborar</option>
+      <option>Pre-elaborado</option>
+      <option>Listo para entregar</option>
+      <option>Entregado</option>
+      <option>Cancelado</option>
+    </select>
+
+    <textarea id="notes" placeholder="Notas / pedido especial"></textarea>
+    <button id="saveButton" class="primary" onclick="save()">Guardar pedido</button>
+    <button id="cancelEditButton" class="secondary" onclick="cancelEdit()" style="display:none;margin-left:6px">Cancelar edición</button>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>Pedidos pendientes</h2>
+        <div class="small">Aquí solo aparecen pedidos que todavía requieren atención.</div>
+      </div>
+    </div>
+    <div id="orders"></div>
+  </section>
+</section>
+
+<section id="view-finalizados" class="view">
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>📦 Pedidos finalizados</h2>
+        <div class="small">Historial permanente de entregados y cancelados. No se elimina de aquí por accidente.</div>
+      </div>
+    </div>
+    <div id="finalizedOrders"></div>
+  </section>
+</section>
+
+<section id="view-ventas" class="view">
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>💰 Ventas y resumen</h2>
+        <div class="small">Las ventas se calculan con pedidos marcados como Entregado. Cancelados no suman.</div>
+      </div>
+      <select id="salesRange" onchange="renderSales()">
+        <option value="today">Hoy</option>
+        <option value="7">Últimos 7 días</option>
+        <option value="15">Últimos 15 días</option>
+        <option value="30">Últimos 30 días</option>
+        <option value="month">Este mes</option>
+        <option value="all">Todo</option>
+      </select>
+    </div>
+    <div class="sales-summary">
+      <div class="sales-box">Ventas<strong id="salesTotal">$0.00</strong></div>
+      <div class="sales-box">Pedidos entregados<strong id="salesOrders">0</strong></div>
+      <div class="sales-box">Ticket promedio<strong id="avgTicket">$0.00</strong></div>
+    </div>
+    <div style="overflow:auto;margin-top:16px">
+      <table>
+        <thead><tr><th>Fecha</th><th>Pedido</th><th>Cliente</th><th>Total</th><th>Pagado</th></tr></thead>
+        <tbody id="salesTable"></tbody>
+      </table>
+    </div>
+  </section>
+</section>
+
+<section id="view-inventario" class="view">
+  <section>
+    <h2>📋 Inventario</h2>
+    <div class="empty">
+      Esta sección queda preparada para la siguiente etapa. Aquí podremos controlar ingredientes,
+      existencia, costos y alertas de compra sin tocar los pedidos que ya funcionan.
+    </div>
+  </section>
+</section>
+
+</main>
+
+<script>
+const products={{products|tojson}};
+window.promotions={{promotions|default([], true)|tojson}};
+const activeOrders={{active_orders|tojson}};
+const finalizedOrders={{finalized_orders|tojson}};
+const allOrders={{orders|tojson}};
+let cart=[],promos=[],pays=[],editingOrderId=null;
+
+function money(n){return '$'+Number(n||0).toFixed(2)}
+function emptyProduct(){return {product:'',qty:1,unit_price:0}}
+function emptyPromotion(){return {promotion_id:'',promotion_name:'',promotion_description:'',qty:1,unit_price:0}}
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='ventas') renderSales();
+}
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+
+function newOrder(){
+  editingOrderId=null; cart=[emptyProduct()]; promos=[]; pays=[];
+  document.getElementById('formTitle').textContent='Nuevo pedido';
+  document.getElementById('client').value='';
+  document.getElementById('date').value='';
+  document.getElementById('status').value='Pendiente de elaborar';
+  document.getElementById('notes').value='';
+  document.getElementById('saveButton').textContent='Guardar pedido';
+  document.getElementById('cancelEditButton').style.display='none';
+  render();
+  document.getElementById('orderFormSection').scrollIntoView({behavior:'smooth'});
+}
+function addItem(){cart.push(emptyProduct());render()}
+function deleteItem(i){cart.splice(i,1);if(!cart.length)cart.push(emptyProduct());render()}
+function changeProduct(i,v){
+  const p=products.find(x=>x[0]===v);
+  if(p){cart[i].product=p[0];cart[i].unit_price=Number(p[1])||0}
+  else{cart[i].product='';cart[i].unit_price=0}
+  render()
+}
+function changeQty(i,v){cart[i].qty=Math.max(1,Number(v)||1);render()}
+function addPromotion(){promos.push(emptyPromotion());render()}
+function deletePromotion(i){promos.splice(i,1);render()}
+function changePromotion(i,id){
+  const p=(window.promotions||[]).find(x=>x.id===id);
+  promos[i]=p?{promotion_id:p.id,promotion_name:p.name,promotion_description:p.includes||p.description||'',qty:promos[i].qty||1,unit_price:Number(p.price)||0}:emptyPromotion();
+  render()
+}
+function changePromotionQty(i,v){promos[i].qty=Math.max(1,Number(v)||1);render()}
+function addPayment(){pays.push({method:'Efectivo',amount:0});render()}
+function deletePayment(i){pays.splice(i,1);render()}
+
+function statusChanged(){
+  if(document.getElementById('status').value==='Cancelado'){
+    if(confirm('Al cancelar este pedido, los productos, promociones y pagos quedarán en $0.00. ¿Deseas continuar?')){
+      cart=[];promos=[];pays=[];render()
+    }else document.getElementById('status').value='Pendiente de elaborar'
+  }
+}
+
+function render(){
+  let ic=document.getElementById('items');
+  ic.innerHTML=cart.map((x,i)=>{
+    let o='<option value="">Seleccione un producto</option>';
+    products.forEach(p=>o+=`<option value="${p[0]}" ${p[0]===x.product?'selected':''}>${p[0]} — ${money(p[1])}</option>`);
+    let s=Number(x.qty||0)*Number(x.unit_price||0);
+    return `<div class="item"><label>Producto</label><select onchange="changeProduct(${i},this.value)">${o}</select>
+      <div class="item-actions"><label>Cantidad:</label><input type="number" min="1" value="${x.qty}" style="max-width:120px" onchange="changeQty(${i},this.value)">
+      <button class="danger" type="button" onclick="deleteItem(${i})">🗑️ Eliminar producto</button></div>
+      <div class="subtotal">Subtotal: ${money(s)}</div></div>`
+  }).join('');
+
+  let pc=document.getElementById('promotions');
+  pc.innerHTML=promos.map((x,i)=>{
+    let o='<option value="">Seleccione una promoción</option>';
+    (window.promotions||[]).forEach(p=>o+=`<option value="${p.id}" ${p.id===x.promotion_id?'selected':''}>${p.name} — ${money(p.price)}</option>`);
+    let s=Number(x.qty||0)*Number(x.unit_price||0);
+    return `<div class="item"><label>Promoción</label><select onchange="changePromotion(${i},this.value)">${o}</select>
+      ${x.promotion_description?`<div class="promotion-info">🎁 ${x.promotion_description}</div>`:''}
+      <div class="item-actions"><label>Cantidad:</label><input type="number" min="1" value="${x.qty}" style="max-width:120px" onchange="changePromotionQty(${i},this.value)">
+      <button class="danger" type="button" onclick="deletePromotion(${i})">🗑️ Eliminar promoción</button></div>
+      <div class="subtotal">Subtotal: ${money(s)}</div></div>`
+  }).join('');
+
+  let payc=document.getElementById('payments');
+  payc.innerHTML=pays.map((p,i)=>`<div class="payment"><div class="row">
+    <select onchange="pays[${i}].method=this.value">
+      <option ${p.method==='Efectivo'?'selected':''}>Efectivo</option>
+      <option ${p.method==='Zelle'?'selected':''}>Zelle</option>
+      <option ${p.method==='Cash App'?'selected':''}>Cash App</option>
+      <option ${p.method==='Tarjeta'?'selected':''}>Tarjeta</option>
+      <option ${p.method==='Otro'?'selected':''}>Otro</option>
+    </select>
+    <input type="number" step=".01" min="0" placeholder="Monto" value="${p.amount}" onchange="pays[${i}].amount=Math.max(0,Number(this.value)||0);render()">
+  </div><div class="payment-actions"><button class="danger" type="button" onclick="deletePayment(${i})">🗑️ Eliminar pago</button></div></div>`).join('');
+
+  const pt=cart.reduce((s,x)=>s+Number(x.qty||0)*Number(x.unit_price||0),0);
+  const rt=promos.reduce((s,x)=>s+Number(x.qty||0)*Number(x.unit_price||0),0);
+  const total=pt+rt,paid=pays.reduce((s,x)=>s+Number(x.amount||0),0),bal=Math.max(0,total-paid);
+  const valid=cart.filter(x=>x.product);
+
+  document.getElementById('productSummary').innerHTML=valid.length?valid.map(x=>`<div>${x.product} × ${x.qty} = ${money(Number(x.qty)*Number(x.unit_price))}</div>`).join(''):'Sin productos';
+  document.getElementById('productsSubtotal').textContent=money(pt);
+  document.getElementById('promotionsSubtotal').textContent=money(rt);
+  document.getElementById('total').textContent=money(total);
+  document.getElementById('paid').textContent=money(paid);
+  document.getElementById('balance').textContent=money(bal);
+  document.getElementById('paymentStatus').textContent=total>0&&paid>=total?'Pagado':paid>0?'Pago parcial':'No pagado';
+}
+
+async function save(){
+  const client=document.getElementById('client').value.trim(),
+        date=document.getElementById('date').value,
+        status=document.getElementById('status').value,
+        notes=document.getElementById('notes').value;
+  if(!client||!date)return alert('Agrega cliente y fecha.');
+  if(status!=='Cancelado'){
+    cart=cart.filter(x=>x.product);promos=promos.filter(x=>x.promotion_id);
+    if(!cart.length&&!promos.length)return alert('Agrega al menos un producto o una promoción.')
+  }
+  let items=[
+    ...cart.map(x=>({...x,promotion_id:'',promotion_name:'',promotion_description:''})),
+    ...promos.map(x=>({product:x.promotion_name,qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0,promotion_id:x.promotion_id,promotion_name:x.promotion_name,promotion_description:x.promotion_description}))
+  ];
+  if(status==='Cancelado'){items=[];pays=[]}
+  const payload={client,delivery_date:date,status,notes,items,payments:pays};
+  const url=editingOrderId===null?'/orders':'/orders/'+editingOrderId;
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok){console.error(await r.text());return alert('No se pudo guardar el pedido.')}
+    const result=await r.json();
+    if(!result.ok)return alert('No se pudo guardar el pedido.');
+    alert(editingOrderId!==null?'Pedido actualizado correctamente.':'Pedido guardado correctamente.');
+    location.reload();
+  }catch(e){console.error(e);alert('No se pudo guardar el pedido. Revisa la conexión e inténtalo de nuevo.')}
+}
+
+function editOrder(order){
+  editingOrderId=order.id;
+  showView('pedidos');
+  document.getElementById('formTitle').textContent='Editar pedido #'+order.id;
+  document.getElementById('client').value=order.client;
+  document.getElementById('date').value=order.delivery_date;
+  document.getElementById('status').value=order.status;
+  document.getElementById('notes').value=order.notes||'';
+  cart=[];promos=[];
+  (order.items||[]).forEach(x=>x.promotion_id
+    ?promos.push({promotion_id:x.promotion_id,promotion_name:x.promotion_name||x.product,promotion_description:x.promotion_description||'',qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0})
+    :cart.push({product:x.product,qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0}));
+  if(order.status==='Cancelado'){cart=[];promos=[]}
+  if(order.status!=='Cancelado'&&!cart.length)cart.push(emptyProduct());
+  pays=(order.payments||[]).map(x=>({method:x.method,amount:Number(x.amount)||0}));
+  document.getElementById('saveButton').textContent='Actualizar pedido';
+  document.getElementById('cancelEditButton').style.display='inline-block';
+  render();
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function cancelEdit(){
+  editingOrderId=null;cart=[emptyProduct()];promos=[];pays=[];
+  document.getElementById('formTitle').textContent='Nuevo pedido';
+  document.getElementById('client').value='';
+  document.getElementById('date').value='';
+  document.getElementById('status').value='Pendiente de elaborar';
+  document.getElementById('notes').value='';
+  document.getElementById('saveButton').textContent='Guardar pedido';
+  document.getElementById('cancelEditButton').style.display='none';
+  render()
+}
+
+async function removeOrder(id){
+  if(!confirm('¿Eliminar este pedido definitivamente? Esta acción sí lo borrará de la base de datos.'))return;
+  const r=await fetch('/orders/'+id,{method:'DELETE'});
+  if(r.ok)location.reload();else alert('No se pudo eliminar el pedido.')
+}
+
+function orderCard(order,finalized=false){
+  const total=Number(order.total||0),paid=Number(order.paid||0),balance=Number(order.balance||0);
+  const ps=total>0&&paid>=total?'Pagado':paid>0?'Pago parcial':'No pagado';
+  const prod=(order.items||[]).filter(x=>!x.promotion_id).map(x=>`<div>${x.qty} × ${x.product} — ${money(Number(x.qty)*Number(x.unit_price))}</div>`).join('');
+  const promo=(order.items||[]).filter(x=>x.promotion_id).map(x=>`<div>🎁 ${x.qty} × ${x.promotion_name||x.product} — ${money(Number(x.qty)*Number(x.unit_price))}${x.promotion_description?`<br><small>${x.promotion_description}</small>`:''}</div>`).join('');
+  const pay=(order.payments||[]).map(x=>`<span class="tag">${x.method}: ${money(x.amount)}</span>`).join('');
+  const statusClass=order.status==='Entregado'?'status-ok':order.status==='Cancelado'?'status-cancel':'';
+  return `<div class="card order-card ${finalized?'finalized':''}">
+    <h3 style="margin-top:0">Pedido #${order.id} · ${order.client}</h3>
+    <div class="item"><b>📅 Fecha de entrega</b><br>${order.delivery_date}</div>
+    <div class="item"><b>📌 Estado del pedido</b><br><span class="tag ${statusClass}">${order.status}</span></div>
+    <div class="item"><b>🧾 Total de la factura</b><br>${money(total)}</div>
+    <div class="item"><b>💵 Pagado</b><br>${money(paid)}</div>
+    <div class="item"><b>💳 Saldo restante</b><br>${money(balance)}</div>
+    <div class="item"><b>📊 Estado de pago</b><br><span class="payment-status">${ps}</span></div>
+    <div class="item"><b>💰 Método(s) de pago</b><br>${pay||'Sin pago registrado'}</div>
+    <div class="item"><b>🛒 Productos</b><br>${prod||'Sin productos'}${promo?`<br><b>🎁 Promociones</b>${promo}`:''}</div>
+    <div class="item"><b>📝 Nota</b><br>${order.notes||'Sin notas'}</div>
+    ${finalized
+      ? `<div class="small">🔒 Pedido guardado en historial. No se muestran acciones de edición o eliminación.</div>`
+      : `<div class="order-buttons">
+          <button class="secondary" onclick='editOrder(${JSON.stringify(order)})'>✏️ Editar</button>
+          <button class="danger" onclick="removeOrder(${order.id})">🗑️ Eliminar</button>
+        </div>`}
+  </div>`
+}
+
+function renderOrders(){
+  const el=document.getElementById('orders');
+  el.innerHTML=activeOrders.length
+    ?activeOrders.map(o=>orderCard(o,false)).join('')
+    :'<div class="empty">🎉 No tienes pedidos pendientes. ¡Todo al día!</div>';
+
+  const fin=document.getElementById('finalizedOrders');
+  fin.innerHTML=finalizedOrders.length
+    ?finalizedOrders.map(o=>orderCard(o,true)).join('')
+    :'<div class="empty">Todavía no hay pedidos finalizados.</div>';
+
+  const alerts=document.getElementById('homeAlerts');
+  const balances=activeOrders.filter(o=>Number(o.balance||0)>0);
+  const ready=activeOrders.filter(o=>o.status==='Listo para entregar');
+  let blocks=[];
+  balances.forEach(o=>blocks.push(`<div class="alert">🔴 ${o.client} · Pedido #${o.id} · saldo pendiente ${money(o.balance)}</div>`));
+  ready.forEach(o=>blocks.push(`<div style="padding:10px 0">🚚 <b>${o.client}</b> · Pedido #${o.id} está listo para entregar.</div>`));
+  alerts.innerHTML=blocks.length?blocks.join(''):'<div class="empty">✨ No hay alertas. Todo está bajo control.</div>';
+}
+
+function localDateMinus(days){
+  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-days);
+  return d;
+}
+function renderSales(){
+  const range=document.getElementById('salesRange').value;
+  const delivered=allOrders.filter(o=>o.status==='Entregado');
+  const now=new Date();now.setHours(23,59,59,999);
+  let filtered=delivered;
+  if(range==='today'){
+    const today=new Date();today.setHours(0,0,0,0);
+    filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=today && new Date(o.delivery_date+'T00:00:00')<=now);
+  }else if(range==='month'){
+    const first=new Date(now.getFullYear(),now.getMonth(),1);
+    filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=first && new Date(o.delivery_date+'T00:00:00')<=now);
+  }else if(range!=='all'){
+    const first=localDateMinus(Number(range)-1);
+    filtered=delivered.filter(o=>new Date(o.delivery_date+'T00:00:00')>=first && new Date(o.delivery_date+'T00:00:00')<=now);
+  }
+  const total=filtered.reduce((s,o)=>s+Number(o.total||0),0);
+  document.getElementById('salesTotal').textContent=money(total);
+  document.getElementById('salesOrders').textContent=filtered.length;
+  document.getElementById('avgTicket').textContent=money(filtered.length?total/filtered.length:0);
+  document.getElementById('salesTable').innerHTML=filtered.length
+    ?filtered.sort((a,b)=>a.delivery_date.localeCompare(b.delivery_date)||a.id-b.id).map(o=>`<tr><td>${o.delivery_date}</td><td>#${o.id}</td><td>${o.client}</td><td>${money(o.total)}</td><td>${money(o.paid)}</td></tr>`).join('')
+    :'<tr><td colspan="5">No hay ventas entregadas en este período.</td></tr>';
+}
+
+cart=[emptyProduct()];
+render();
+renderOrders();
+renderSales();
+</script>
+</body>
+</html>
+
+
+
+
