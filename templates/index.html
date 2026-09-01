@@ -1,486 +1,134 @@
 <!doctype html>
+
 <html lang="es">
-
 <head>
-
 <meta charset="utf-8">
-
-<meta
-  name="viewport"
-  content="width=device-width,initial-scale=1"
->
-
-<title>Josefina's Bakery</title>
-
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Josefina's Bakery · Gestión</title>
 <style>
-
 :root{
-
   --b:#5b3826;
   --c:#f7f0e7;
   --p:#fffdf9;
   --l:#dfd2c6;
   --s:#eee2d5;
-
+  --soft:#f3e8dc;
+  --ok:#e6f1e8;
+  --ok-text:#28623b;
+  --warn:#fff0cf;
+  --warn-text:#7a5200;
+  --danger:#f8dddd;
+  --danger-text:#8b2020;
+  --shadow:0 8px 24px rgba(91,56,38,.08);
 }
-
-
+*{box-sizing:border-box}
 body{
-
   margin:0;
-
-  font-family:system-ui,sans-serif;
-
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:var(--c);
-
   color:#3b2a20;
-
 }
-
-
 header{
-
-  background:var(--b);
-
+  background:linear-gradient(135deg,#5b3826,#7b5038);
   color:white;
-
-  padding:22px 18px;
-
-  border-radius:0 0 24px 24px;
-
+  padding:28px 18px 22px;
+  border-radius:0 0 28px 28px;
+  box-shadow:var(--shadow);
 }
-
-
-main{
-
-  max-width:850px;
-
-  margin:auto;
-
-  padding:16px;
-
+.header-inner{max-width:1000px;margin:auto}
+.brand{font-family:Georgia,serif;font-size:30px;font-weight:700}
+.tagline{margin-top:5px;opacity:.92}
+nav{
+  max-width:1000px;
+  margin:14px auto 0;
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:0 2px 3px;
 }
-
-
-.card,
-section{
-
+.nav-btn{
+  background:rgba(255,255,255,.14);
+  color:white;
+  border:1px solid rgba(255,255,255,.24);
+  white-space:nowrap;
+  padding:10px 13px;
+  border-radius:12px;
+}
+.nav-btn.active{background:white;color:var(--b)}
+main{max-width:1000px;margin:auto;padding:18px}
+.view{display:none}
+.view.active{display:block}
+.hero{
   background:var(--p);
-
-  padding:15px;
-
-  border-radius:18px;
-
-  margin:12px 0;
-
+  border:1px solid var(--l);
+  border-radius:24px;
+  padding:22px;
+  box-shadow:var(--shadow);
 }
-
-
-.row{
-
+.hero h1{font-family:Georgia,serif;margin:0 0 7px;color:var(--b)}
+.hero p{margin:0;color:#6c5648}
+.grid{
   display:grid;
-
-  grid-template-columns:1fr 1fr;
-
-  gap:10px;
-
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin:14px 0;
 }
-
-
-input,
-select,
-textarea{
-
-  width:100%;
-
-  padding:11px;
-
+.metric{
+  background:var(--p);
   border:1px solid var(--l);
-
-  border-radius:10px;
-
-  box-sizing:border-box;
-
-  margin:5px 0 10px;
-
+  border-radius:18px;
+  padding:16px;
+  box-shadow:var(--shadow);
 }
-
-
-button{
-
-  padding:11px 14px;
-
-  border:0;
-
-  border-radius:12px;
-
-  font-weight:700;
-
-  cursor:pointer;
-
-}
-
-
-.primary{
-
-  background:var(--b);
-
-  color:white;
-
-}
-
-
-.secondary{
-
-  background:white;
-
-  border:1px solid var(--l);
-
-  color:var(--b);
-
-}
-
-
-.danger{
-
-  background:#f8dddd;
-
-  color:#8b2020;
-
+.metric .icon{font-size:23px}
+.metric .label{font-size:13px;color:#735f51;margin-top:6px}
+.metric .value{font-size:22px;font-weight:800;color:var(--b);margin-top:3px}
+.alert{
+  background:var(--danger);
+  color:var(--danger-text);
   border:1px solid #e7bcbc;
-
-}
-
-
-.item{
-
-  padding:12px 0;
-
-  border-bottom:1px solid #eee;
-
-}
-
-
-.item-actions{
-
-  display:flex;
-
-  align-items:center;
-
-  gap:8px;
-
-  flex-wrap:wrap;
-
-}
-
-
-.subtotal{
-
-  font-weight:700;
-
-  margin:4px 0 8px;
-
-}
-
-
-.products-summary{
-
-  background:var(--s);
-
-  padding:12px;
-
-  border-radius:12px;
-
+  border-radius:16px;
+  padding:14px 16px;
   margin:12px 0;
-
-}
-
-
-.products-summary-title{
-
-  font-weight:800;
-
-  margin-bottom:6px;
-
-}
-
-
-.promotion-info{
-
-  background:#f7efe5;
-
-  border:1px solid var(--l);
-
-  padding:8px 10px;
-
-  border-radius:10px;
-
-  font-size:13px;
-
-  margin:2px 0 8px;
-
-}
-
-
-.payment{
-
-  padding:10px 0;
-
-  border-bottom:1px solid #eee;
-
-}
-
-
-.payment-actions{
-
-  display:flex;
-
-  align-items:center;
-
-  gap:8px;
-
-}
-
-
-.tag{
-
-  display:inline-block;
-
-  background:var(--s);
-
-  padding:5px 8px;
-
-  border-radius:8px;
-
-  font-size:12px;
-
-  margin:4px 3px 0 0;
-
-}
-
-
-.payment-status{
-
-  display:inline-block;
-
-  padding:6px 10px;
-
-  border-radius:9px;
-
-  background:var(--s);
-
   font-weight:700;
-
-  font-size:13px;
-
-  margin-top:8px;
-
 }
-
-
-.order-buttons{
-
-  display:flex;
-
-  gap:8px;
-
-  flex-wrap:wrap;
-
-  margin-top:12px;
-
+.quick{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:16px;
 }
-
-
-@media(max-width:600px){
-
-  .row{
-
-    grid-template-columns:1fr;
-
-  }
-
+.quick button{min-height:64px}
+.card,section{
+  background:var(--p);
+  padding:17px;
+  border-radius:18px;
+  margin:12px 0;
+  border:1px solid var(--l);
+  box-shadow:var(--shadow);
 }
-
-</style>
-
-</head>
-
-
-<body>
-
-
-<header>
-
-  <h1>Josefina's Bakery 🥖</h1>
-
-  <div>
-    Panes, café y más · Horneamos con amor
-  </div>
-
-</header>
-
-
-<main>
-<section>
-<h2 id="formTitle">Nuevo pedido</h2>
-<input id="client" placeholder="Cliente">
-<input id="date" type="date">
-
-<h3>Productos</h3>
-<div id="items"></div>
-<button class="secondary" onclick="addItem()">➕ Agregar producto</button>
-
-<div class="products-summary">
-  <div class="products-summary-title">Resumen de productos</div>
-  <div id="productSummary">Sin productos</div>
-  <div style="margin-top:10px"><b>Subtotal productos:</b> <span id="productsSubtotal">$0.00</span></div>
-</div>
-
-<div class="card" style="margin-top:12px">
-  <h3>🎁 Promociones</h3>
-  <div id="promotions"></div>
-  <button class="secondary" onclick="addPromotion()">➕ Agregar promoción</button>
-  <div class="subtotal" style="margin-top:10px">Subtotal promociones: <span id="promotionsSubtotal">$0.00</span></div>
-</div>
-
-<h3>Total: <span id="total">$0.00</span></h3>
-<h3>Pagos</h3>
-<div id="payments"></div>
-<button class="secondary" onclick="addPayment()">➕ Agregar pago</button>
-<div>Pagado: <b id="paid">$0.00</b> · Saldo: <b id="balance">$0.00</b></div>
-<div>Estado del pago: <b id="paymentStatus">No pagado</b></div>
-<br>
-<label>Estado del pedido</label>
-<select id="status" onchange="statusChanged()">
-<option>Pendiente de elaborar</option><option>Pre-elaborado</option><option>Listo para entregar</option><option>Entregado</option><option>Cancelado</option>
-</select>
-<textarea id="notes" placeholder="Notas / pedido especial"></textarea>
-<button id="saveButton" class="primary" onclick="save()">Guardar pedido</button>
-<button id="cancelEditButton" class="secondary" onclick="cancelEdit()" style="display:none;margin-left:6px">Cancelar edición</button>
-</section>
-<section>
-
-<h2>
-  Pedidos
-</h2>
-
-
-<div id="orders"></div>
-
-
-</section>
-
-
-
-</main>
-<script>
-const products={{products|tojson}};
-window.promotions={{promotions|default([], true)|tojson}};
-let cart=[],promos=[],pays=[],editingOrderId=null;
-function money(n){return '$'+Number(n||0).toFixed(2)}
-function emptyProduct(){return {product:'',qty:1,unit_price:0}}
-function emptyPromotion(){return {promotion_id:'',promotion_name:'',promotion_description:'',qty:1,unit_price:0}}
-function addItem(){cart.push(emptyProduct());render()}
-function deleteItem(i){cart.splice(i,1);if(!cart.length)cart.push(emptyProduct());render()}
-function changeProduct(i,v){const p=products.find(x=>x[0]===v);if(p){cart[i].product=p[0];cart[i].unit_price=Number(p[1])||0}else{cart[i].product='';cart[i].unit_price=0}render()}
-function changeQty(i,v){cart[i].qty=Math.max(1,Number(v)||1);render()}
-function addPromotion(){promos.push(emptyPromotion());render()}
-function deletePromotion(i){promos.splice(i,1);render()}
-function changePromotion(i,id){const p=(window.promotions||[]).find(x=>x.id===id);promos[i]=p?{promotion_id:p.id,promotion_name:p.name,promotion_description:p.includes||p.description||'',qty:promos[i].qty||1,unit_price:Number(p.price)||0}:emptyPromotion();render()}
-function changePromotionQty(i,v){promos[i].qty=Math.max(1,Number(v)||1);render()}
-function addPayment(){pays.push({method:'Efectivo',amount:0});render()}
-function deletePayment(i){pays.splice(i,1);render()}
-function statusChanged(){if(document.getElementById('status').value==='Cancelado'){if(confirm('Al cancelar este pedido, los productos, promociones y pagos quedarán en $0.00. ¿Deseas continuar?')){cart=[];promos=[];pays=[];render()}else document.getElementById('status').value='Pendiente de elaborar'}}
-function render(){
-let ic=document.getElementById('items');ic.innerHTML=cart.map((x,i)=>{let o='<option value="">Seleccione un producto</option>';products.forEach(p=>o+=`<option value="${p[0]}" ${p[0]===x.product?'selected':''}>${p[0]} — ${money(p[1])}</option>`);let s=Number(x.qty||0)*Number(x.unit_price||0);return `<div class="item"><label>Producto</label><select onchange="changeProduct(${i},this.value)">${o}</select><div class="item-actions"><label>Cantidad:</label><input type="number" min="1" value="${x.qty}" style="max-width:120px" onchange="changeQty(${i},this.value)"><button class="danger" type="button" onclick="deleteItem(${i})">🗑️ Eliminar producto</button></div><div class="subtotal">Subtotal: ${money(s)}</div></div>`}).join('');
-let pc=document.getElementById('promotions');pc.innerHTML=promos.map((x,i)=>{let o='<option value="">Seleccione una promoción</option>';(window.promotions||[]).forEach(p=>o+=`<option value="${p.id}" ${p.id===x.promotion_id?'selected':''}>${p.name} — ${money(p.price)}</option>`);let s=Number(x.qty||0)*Number(x.unit_price||0);return `<div class="item"><label>Promoción</label><select onchange="changePromotion(${i},this.value)">${o}</select>${x.promotion_description?`<div class="promotion-info">🎁 ${x.promotion_description}</div>`:''}<div class="item-actions"><label>Cantidad:</label><input type="number" min="1" value="${x.qty}" style="max-width:120px" onchange="changePromotionQty(${i},this.value)"><button class="danger" type="button" onclick="deletePromotion(${i})">🗑️ Eliminar promoción</button></div><div class="subtotal">Subtotal: ${money(s)}</div></div>`}).join('');
-let payc=document.getElementById('payments');payc.innerHTML=pays.map((p,i)=>`<div class="payment"><div class="row"><select onchange="pays[${i}].method=this.value"><option ${p.method==='Efectivo'?'selected':''}>Efectivo</option><option ${p.method==='Zelle'?'selected':''}>Zelle</option><option ${p.method==='Cash App'?'selected':''}>Cash App</option><option ${p.method==='Tarjeta'?'selected':''}>Tarjeta</option><option ${p.method==='Otro'?'selected':''}>Otro</option></select><input type="number" step=".01" min="0" placeholder="Monto" value="${p.amount}" onchange="pays[${i}].amount=Math.max(0,Number(this.value)||0);render()"></div><div class="payment-actions"><button class="danger" type="button" onclick="deletePayment(${i})">🗑️ Eliminar pago</button></div></div>`).join('');
-const pt=cart.reduce((s,x)=>s+Number(x.qty||0)*Number(x.unit_price||0),0),rt=promos.reduce((s,x)=>s+Number(x.qty||0)*Number(x.unit_price||0),0),total=pt+rt,paid=pays.reduce((s,x)=>s+Number(x.amount||0),0),bal=Math.max(0,total-paid);const valid=cart.filter(x=>x.product);document.getElementById('productSummary').innerHTML=valid.length?valid.map(x=>`<div>${x.product} × ${x.qty} = ${money(Number(x.qty)*Number(x.unit_price))}</div>`).join(''):'Sin productos';document.getElementById('productsSubtotal').textContent=money(pt);document.getElementById('promotionsSubtotal').textContent=money(rt);document.getElementById('total').textContent=money(total);document.getElementById('paid').textContent=money(paid);document.getElementById('balance').textContent=money(bal);document.getElementById('paymentStatus').textContent=total>0&&paid>=total?'Pagado':paid>0?'Pago parcial':'No pagado';
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select,textarea{
+  width:100%;
+  padding:11px;
+  border:1px solid var(--l);
+  border-radius:10px;
+  margin:5px 0 10px;
+  background:white;
 }
-async function save(){const client=document.getElementById('client').value.trim(),date=document.getElementById('date').value,status=document.getElementById('status').value,notes=document.getElementById('notes').value;if(!client||!date)return alert('Agrega cliente y fecha.');if(status!=='Cancelado'){cart=cart.filter(x=>x.product);promos=promos.filter(x=>x.promotion_id);if(!cart.length&&!promos.length)return alert('Agrega al menos un producto o una promoción.')}let items=[...cart.map(x=>({...x,promotion_id:'',promotion_name:'',promotion_description:''})),...promos.map(x=>({product:x.promotion_name,qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0,promotion_id:x.promotion_id,promotion_name:x.promotion_name,promotion_description:x.promotion_description}))];if(status==='Cancelado'){items=[];pays=[]}const payload={client,delivery_date:date,status,notes,items,payments:pays};const url=editingOrderId===null?'/orders':'/orders/'+editingOrderId;try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok){console.error(await r.text());return alert('No se pudo guardar el pedido.')}const result=await r.json();if(!result.ok)return alert('No se pudo guardar el pedido.');alert(editingOrderId!==null?'Pedido actualizado correctamente.':'Pedido guardado correctamente.');editingOrderId=null;cart=[emptyProduct()];promos=[];pays=[];document.getElementById('formTitle').textContent='Nuevo pedido';document.getElementById('client').value='';document.getElementById('date').value='';document.getElementById('status').value='Pendiente de elaborar';document.getElementById('notes').value='';document.getElementById('saveButton').textContent='Guardar pedido';document.getElementById('cancelEditButton').style.display='none';render();location.reload()}catch(e){console.error(e);alert('No se pudo guardar el pedido. Revisa la conexión e inténtalo de nuevo.')}}
-function editOrder(order){editingOrderId=order.id;document.getElementById('formTitle').textContent='Editar pedido #'+order.id;document.getElementById('client').value=order.client;document.getElementById('date').value=order.delivery_date;document.getElementById('status').value=order.status;document.getElementById('notes').value=order.notes||'';cart=[];promos=[];(order.items||[]).forEach(x=>x.promotion_id?promos.push({promotion_id:x.promotion_id,promotion_name:x.promotion_name||x.product,promotion_description:x.promotion_description||'',qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0}):cart.push({product:x.product,qty:Number(x.qty)||1,unit_price:Number(x.unit_price)||0}));if(order.status==='Cancelado'){cart=[];promos=[]}if(order.status!=='Cancelado'&&!cart.length)cart.push(emptyProduct());pays=(order.payments||[]).map(x=>({method:x.method,amount:Number(x.amount)||0}));document.getElementById('saveButton').textContent='Actualizar pedido';document.getElementById('cancelEditButton').style.display='inline-block';render();window.scrollTo({top:0,behavior:'smooth'})}
-function cancelEdit(){editingOrderId=null;cart=[emptyProduct()];promos=[];pays=[];document.getElementById('formTitle').textContent='Nuevo pedido';document.getElementById('client').value='';document.getElementById('date').value='';document.getElementById('status').value='Pendiente de elaborar';document.getElementById('notes').value='';document.getElementById('saveButton').textContent='Guardar pedido';document.getElementById('cancelEditButton').style.display='none';render()}
-async function removeOrder(id){if(!confirm('¿Eliminar este pedido definitivamente?'))return;const r=await fetch('/orders/'+id,{method:'DELETE'});if(r.ok)location.reload();else alert('No se pudo eliminar el pedido.')}
-cart=[emptyProduct()];render();
-const ordersData=[{% for o in orders %}{id:{{o.id}},client:{{o.client|tojson}},delivery_date:{{o.delivery_date|tojson}},status:{{o.status|tojson}},notes:{{o.notes|tojson}},total:{{o.total}},paid:{{o.paid}},balance:{{o.balance}},items:{{o.items|tojson}},payments:{{o.payments|tojson}}}{% if not loop.last %},{% endif %}{% endfor %}];
-document.getElementById('orders').innerHTML=ordersData.map(order=>{
-  const total=Number(order.total||0),
-        paid=Number(order.paid||0),
-        balance=Number(order.balance||0);
-
-  const ps=total>0&&paid>=total?'Pagado':paid>0?'Pago parcial':'No pagado';
-
-  const prod=(order.items||[])
-    .filter(x=>!x.promotion_id)
-    .map(x=>`<div>${x.qty} × ${x.product} — ${money(Number(x.qty)*Number(x.unit_price))}</div>`)
-    .join('');
-
-  const promo=(order.items||[])
-    .filter(x=>x.promotion_id)
-    .map(x=>`<div>🎁 ${x.qty} × ${x.promotion_name||x.product} — ${money(Number(x.qty)*Number(x.unit_price))}${x.promotion_description?`<br><small>${x.promotion_description}</small>`:''}</div>`)
-    .join('');
-
-  const pay=(order.payments||[])
-    .map(x=>`<span class="tag">${x.method}: ${money(x.amount)}</span>`)
-    .join('');
-
-  return `<div class="card">
-    <h3 style="margin-top:0">Pedido #${order.id} · ${order.client}</h3>
-
-    <div class="item">
-      <b>📅 Fecha de entrega</b><br>
-      ${order.delivery_date}
-    </div>
-
-    <div class="item">
-      <b>📌 Estado del pedido</b><br>
-      <span class="tag">${order.status}</span>
-    </div>
-
-    <div class="item">
-      <b>🧾 Total de la factura</b><br>
-      ${money(total)}
-    </div>
-
-    <div class="item">
-      <b>💵 Adelanto pagado</b><br>
-      ${money(paid)}
-    </div>
-
-    <div class="item">
-      <b>💳 Saldo restante</b><br>
-      ${money(balance)}
-    </div>
-
-    <div class="item">
-      <b>📊 Estado de pago</b><br>
-      <span class="payment-status">${ps}</span>
-    </div>
-
-    <div class="item">
-      <b>💰 Método(s) de pago</b><br>
-      ${pay || 'Sin pago registrado'}
-    </div>
-
-    <div class="item">
-      <b>🛒 Productos</b><br>
-      ${prod || 'Sin productos'}
-      ${promo?`<br><b>🎁 Promociones</b>${promo}`:''}
-    </div>
-
-    <div class="item">
-      <b>📝 Nota</b><br>
-      ${order.notes || 'Sin notas'}
-    </div>
-
-    <div class="order-buttons">
-      <button class="secondary" onclick='editOrder(${JSON.stringify(order)})'>✏️ Editar</button>
-      <button class="danger" onclick="removeOrder(${order.id})">🗑️ Eliminar</button>
-    </div>
-  </div>`;
-}).join('');
-</script>
-</body>
-
-</html>
+textarea{min-height:90px;resize:vertical}
+button{
+  padding:11px 14px;
+  border:0;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.primary{background:var(--b);color:white}
+.secondary{background:white;border:1px solid var(--l);color:var(--b)}
+.danger{background:var(--danger);color:var(--danger-text);border:1px solid #e7bcbc}
+.item{padding:12px 0;border-bottom:1px solid #eee}
+.item:last-child{border-bottom:0}
+.item-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.subtotal{font-weight:700;margin:4px 0 8px}
+.products-summary{background:var(--s);padding:12px;border-
