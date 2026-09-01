@@ -381,6 +381,7 @@ th{color:var(--b)}
       <div class="inventory-actions" style="margin-top:10px"><button id="invSaveBtn" class="primary" onclick="saveInventory()">Guardar ingrediente</button><button class="secondary" onclick="clearInventoryForm()">Limpiar</button><span class="small">El punto de recompra se compara con la existencia equivalente.</span></div>
     </div>
     <div class="inventory-table-wrap"><table><thead><tr><th>Categoría</th><th>Producto / marca</th><th>Presentación</th><th>Compra</th><th>Cantidad</th><th>Existencia</th><th>Recompra</th><th></th></tr></thead><tbody id="inventoryTable"></tbody></table></div>
+    <section class="card" style="margin-top:14px"><div class="section-head"><div><h3>📖 Recetas cargadas</h3><div class="small">Recetas guardadas para conectar ingredientes con producción más adelante.</div></div><button class="secondary" type="button" onclick="loadRecipes()">🔄 Actualizar recetas</button></div><div id="recipeList"></div></section>
   </section>
 </section>
 
@@ -395,6 +396,7 @@ const allOrders={{orders|tojson}};
 let cart=[],promos=[],pays=[],editingOrderId=null;
 let inventoryData={{inventory|default([], true)|tojson}};
 let editingInventoryId=null;
+let recipesData={{recipes|default([], true)|tojson}};
 
 function money(n){return '$'+Number(n||0).toFixed(2)}
 function emptyProduct(){return {product:'',qty:1,unit_price:0}}
@@ -406,7 +408,7 @@ function showView(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='ventas') renderSales();
-  if(name==='inventario') renderInventory();
+  if(name==='inventario'){renderInventory();renderRecipes();}
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 
@@ -652,6 +654,9 @@ function editInventory(x){editingInventoryId=x.id;document.getElementById('invCa
 async function saveInventory(){const data={category:document.getElementById('invCategory').value.trim(),product:document.getElementById('invProduct').value.trim(),presentation:document.getElementById('invPresentation').value.trim(),purchase_price:Number(document.getElementById('invPrice').value)||0,current_qty:Number(document.getElementById('invCurrent').value)||0,equivalent_qty:Number(document.getElementById('invEquivalent').value)||0,equivalent_unit:document.getElementById('invUnit').value.trim(),reorder_point:Number(document.getElementById('invReorder').value)||0};if(!data.category||!data.product)return alert('Agrega categoría y producto/marca.');const url=editingInventoryId?'/inventory/'+editingInventoryId:'/inventory',method=editingInventoryId?'PUT':'POST';const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!r.ok)return alert('No se pudo guardar el ingrediente.');await loadInventory();clearInventoryForm()}
 async function loadInventory(){try{const r=await fetch('/inventory');inventoryData=await r.json();renderInventory()}catch(e){alert('No se pudo cargar el inventario.')}}
 async function deleteInventory(id){if(!confirm('¿Quitar este ingrediente del inventario activo?'))return;const r=await fetch('/inventory/'+id,{method:'DELETE'});if(r.ok)await loadInventory();else alert('No se pudo quitar el ingrediente.')}
+async function loadRecipes(){try{const r=await fetch('/recipes');if(!r.ok)throw new Error();recipesData=await r.json();renderRecipes()}catch(e){alert('No se pudieron cargar las recetas.')}}
+function renderRecipes(){const el=document.getElementById('recipeList');if(!el)return;el.innerHTML=(recipesData||[]).length?recipesData.map(r=>`<div class="card" style="margin:10px 0;background:#fbf7f1"><div class="section-head"><div><h4 style="margin:0;color:var(--b)">🥖 ${r.name}</h4><div class="small">Rinde: ${r.yield_text||'—'} · Horno: ${r.oven_temp||'—'} · Horneado: ${r.bake_time||'—'}</div></div></div><div style="overflow:auto;margin-top:8px"><table><thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Unidad</th><th>Nota</th></tr></thead><tbody>${(r.ingredients||[]).map(i=>`<tr><td>${i.ingredient_name}</td><td>${i.amount}</td><td>${i.unit}</td><td>${i.notes||''}</td></tr>`).join('')}</tbody></table></div></div>`).join(''):'<div class="empty">Todavía no hay recetas cargadas.</div>'}
+
 
 const bakeryMessages={0:'Domingo: un café, un respiro y a disfrutar lo bonito de lo que haces. ☕🤎',1:'Lunes: que nunca falte un café para comenzar la semana con ilusión. ☕✨',2:'Martes: hoy también hay motivos para hornear algo bonito. 🥐🤎',3:'Miércoles: una taza de café y seguimos creando momentos deliciosos. ☕🥖',4:'Jueves: que el aroma a pan recién horneado te acompañe todo el día. 🤎',5:'Viernes: endulza la vida, un pancito y un café a la vez. ☕🥐',6:'Sábado: disfruta el fruto de tus manos y todo el amor que pones en cada pedido. 🤎✨'};
 const dailyMessageEl=document.getElementById('dailyMessage');if(dailyMessageEl)dailyMessageEl.textContent=bakeryMessages[new Date().getDay()];
@@ -662,6 +667,7 @@ render();
 renderOrders();
 renderSales();
 renderInventory();
+renderRecipes();
 </script>
 </body>
 </html>
