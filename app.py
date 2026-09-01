@@ -11,11 +11,10 @@ app = Flask(__name__)
 
 
 class SafeOrder(dict):
-    """Evita que Jinja confunda la clave "items" con dict.items()."""
+    """Permite acceder a los datos del pedido sin sobrescribir dict.items()."""
 
-    @property
-    def items(self):
-        return dict.get(self, "items", [])
+    def __getitem__(self, key):
+        return super().__getitem__(key)
 
 
 
