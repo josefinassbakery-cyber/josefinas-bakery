@@ -814,14 +814,7 @@ def home():
 
 
     c.close() 
-            c.close()
-        return jsonify({"ok": False, "error": "Los pedidos reales finalizados están protegidos"}), 403
-    c.execute("DELETE FROM payments WHERE order_id=?", (oid,))
-    c.execute("DELETE FROM items WHERE order_id=?", (oid,))
-    c.execute("DELETE FROM orders WHERE id=?", (oid,))
-    c.commit()
-    c.close()
-    return jsonify({"ok": True})
+ 
 
 
 # ============================================================
