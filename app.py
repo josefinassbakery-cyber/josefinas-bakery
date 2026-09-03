@@ -721,3 +721,98 @@ def init():
             ("Vainilla", "2", "cucharadas", "")
         ]
     }
+
+    c.commit()
+    c.close()
+
+
+# ============================================================
+# PÁGINA PRINCIPAL
+# ============================================================
+
+@app.route("/")
+def home():
+
+    c = db()
+
+    orders = c.execute(
+        "SELECT * FROM orders ORDER BY delivery_date, id DESC"
+    ).fetchall()
+
+    result = []
+
+    for o in orders:
+
+        items = c.execute(
+            "SELECT * FROM items WHERE order_id=?",
+            (o["id"],)
+        ).fetchall()
+
+        pays = c.execute(
+            "SELECT * FROM payments WHERE order_id=?",
+            (o["id"],)
+        ).fetchall()
+
+        total = sum(
+            i["qty"] * i["unit_price"]
+            for i in items
+        )
+
+        paid = sum(
+            p["amount"]
+            for p in pays
+        )
+
+        result.append(
+            SafeOrder(
+                dict(
+                    o,
+                    items=[dict(i) for i in items],
+                    payments=[dict(p) for p in pays],
+                    total=total,
+                    paid=paid,
+                    balance=max(0, total - paid)
+                )
+            )
+        )
+
+    c.close()
+
+    active_orders = [
+        o for o in result
+        if o["status"] not in ("Entregado", "Cancelado")
+    ]
+
+    finalized_orders = [
+        o for o in result
+        if o["status"] in ("Entregado", "Cancelado")
+    ]
+
+    return render_template(
+        "index.html",
+        products=PRODUCTS,
+        promotions=PROMOTIONS,
+        orders=result,
+        active_orders=active_orders,
+        finalized_orders=finalized_orders,
+        inventory=[],
+        recipes=[],
+        materials=[]
+    )
+
+
+# ============================================================
+# EJECUCIÓN
+# ============================================================
+
+if __name__ == "__main__":
+
+    port = int(
+        os.environ.get("PORT", 5000)
+    )
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
