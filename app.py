@@ -146,6 +146,7 @@ def db():
 
 
 def init():
+
     c = db()
 
     c.execute("PRAGMA foreign_keys = ON")
@@ -160,7 +161,6 @@ def init():
         created_at TEXT NOT NULL,
         is_test INTEGER NOT NULL DEFAULT 0
     );
-
 
     CREATE TABLE IF NOT EXISTS items(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -177,7 +177,6 @@ def init():
         ON DELETE CASCADE
     );
 
-
     CREATE TABLE IF NOT EXISTS payments(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         order_id INTEGER NOT NULL,
@@ -188,19 +187,17 @@ def init():
         REFERENCES orders(id)
         ON DELETE CASCADE
     );
-
     """)
-
 
     # --------------------------------------------------------
     # MIGRACIÓN SEGURA
-    # Si la base de datos ya existía con la tabla items vieja,
-    # agregamos las columnas de promoción sin borrar pedidos.
     # --------------------------------------------------------
 
     columns = {
         row["name"]
-        for row in c.execute("PRAGMA table_info(items)").fetchall()
+        for row in c.execute(
+            "PRAGMA table_info(items)"
+        ).fetchall()
     }
 
     if "promotion_id" not in columns:
@@ -218,10 +215,11 @@ def init():
             "ALTER TABLE items ADD COLUMN promotion_description TEXT DEFAULT ''"
         )
 
-
     order_columns = {
         row["name"]
-        for row in c.execute("PRAGMA table_info(orders)").fetchall()
+        for row in c.execute(
+            "PRAGMA table_info(orders)"
+        ).fetchall()
     }
 
     if "is_test" not in order_columns:
@@ -229,6 +227,10 @@ def init():
             "ALTER TABLE orders ADD COLUMN is_test INTEGER NOT NULL DEFAULT 0"
         )
 
+
+    # ========================================================
+    # INVENTARIO
+    # ========================================================
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS inventory(
@@ -248,6 +250,10 @@ def init():
     """)
 
 
+    # ========================================================
+    # PROMOCIONES
+    # ========================================================
+
     c.execute("""
     CREATE TABLE IF NOT EXISTS promotions(
         id TEXT PRIMARY KEY,
@@ -259,6 +265,10 @@ def init():
     )
     """)
 
+
+    # ========================================================
+    # RECETAS
+    # ========================================================
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS recipes(
@@ -289,54 +299,147 @@ def init():
     """)
 
 
-    seed = [
-        ("Harina", "King Arthur Bread Flour – Unbleached", "10 lb", 8.38, 6, 60, "lb"),
-        ("Azúcar", "Domino Premium Pure Cane Granulated Sugar", "25 lb", 19.48, 0.5, 12.5, "lb"),
-        ("Azúcar glass", "Member's Mark Cane Powdered Sugar", "7 lb", 6.98, 1, 7, "lb"),
-        ("Leche", "Great Value Vitamin D Whole Milk 3.25%", "1 galón", 3.12, 0.5, 0.5, "galón"),
-        ("Mantequilla", "Countryside Creamery Pure Irish Butter – Salted (ALDI, caja verde)", "8 oz", 3.99, 6, 6, "unidades"),
-        ("Huevos", "Great Value Large White Eggs – Grade A", "Caja 60", 8.12, 49, 49, "huevos"),
-        ("Queso", "Queso (presentación de la foto)", "—", 0, 0.5, 0.5, "pieza"),
-        ("Leche en polvo", "NIDO Fortificada Dry Whole Milk Powder", "56.4 oz", 18.12, 0, 0, "oz"),
-        ("Mantequilla", "Kerrygold Grass-Fed Salted Pure Irish Butter", "8 oz", 4.68, 0, 0, "unidades"),
-        ("Levadura", "Saf-Instant / Lesaffre Instant Yeast", "2 × 16 oz", 13.23, 0, 0, "oz"),
-        ("Vainilla", "Watkins Original Gourmet Baking Vanilla", "8 fl oz / 236 ml", 7.98, 0, 0, "ml"),
-        ("Sal", "Morton Kosher Salt Flakes", "3 lb", 3.97, 0, 0, "lb"),
-        ("Pasas", "Sun-Maid California Sun-Dried Raisins", "32 oz / 2 lb", 6.97, 0, 0, "oz"),
-        ("Coco", "Great Value Organic Unsweetened Coconut Flakes", "7 oz / 198 g", 3.78, 0, 0, "g"),
-        ("Papel film", "Glad Cling'n Seal", "2 × 400 sq ft", 6.98, 0, 0, "sq ft"),
-        ("Papel para hornear", "Great Value Non-Stick Parchment Paper", "100 sq ft", 5.67, 0, 0, "sq ft")
-    ]
-
-    now = datetime.now().isoformat()
-
-    for row in seed:
-        exists = c.execute(
-            "SELECT id FROM inventory WHERE product=? AND presentation=? LIMIT 1",
-            (row[1], row[2])
-        ).fetchone()
-       # ============================================================
+    # ========================================================
     # INVENTARIO INICIAL
-    # ============================================================
+    # ========================================================
 
     seed = [
-        ("Harina", "King Arthur Bread Flour – Unbleached", "10 lb", 8.38, 6, 60, "lb"),
-        ("Azúcar", "Domino Premium Pure Cane Granulated Sugar", "25 lb", 19.48, 0.5, 12.5, "lb"),
-        ("Azúcar glass", "Member's Mark Cane Powdered Sugar", "7 lb", 6.98, 1, 7, "lb"),
-        ("Leche", "Great Value Vitamin D Whole Milk 3.25%", "1 galón", 3.12, 0.5, 0.5, "galón"),
-        ("Mantequilla", "Countryside Creamery Pure Irish Butter – Salted (ALDI, caja verde)", "8 oz", 3.99, 6, 6, "unidades"),
-        ("Huevos", "Great Value Large White Eggs – Grade A", "Caja 60", 8.12, 49, 49, "huevos"),
-        ("Queso", "Queso (presentación de la foto)", "—", 0, 0.5, 0.5, "pieza"),
-        ("Leche en polvo", "NIDO Fortificada Dry Whole Milk Powder", "56.4 oz", 18.12, 0, 0, "oz"),
-        ("Mantequilla", "Kerrygold Grass-Fed Salted Pure Irish Butter", "8 oz", 4.68, 0, 0, "unidades"),
-        ("Levadura", "Saf-Instant / Lesaffre Instant Yeast", "2 × 16 oz", 13.23, 0, 0, "oz"),
-        ("Vainilla", "Watkins Original Gourmet Baking Vanilla", "8 fl oz / 236 ml", 7.98, 0, 0, "ml"),
-        ("Sal", "Morton Kosher Salt Flakes", "3 lb", 3.97, 0, 0, "lb"),
-        ("Pasas", "Sun-Maid California Sun-Dried Raisins", "32 oz / 2 lb", 6.97, 0, 0, "oz"),
-        ("Coco", "Great Value Organic Unsweetened Coconut Flakes", "7 oz / 198 g", 3.78, 0, 0, "g"),
-        ("Papel film", "Glad Cling'n Seal", "2 × 400 sq ft", 6.98, 0, 0, "sq ft"),
-        ("Papel para hornear", "Great Value Non-Stick Parchment Paper", "100 sq ft", 5.67, 0, 0, "sq ft"),
-        ("Papelón / Panela", "Papelón (Panela) — presentación de la foto", "unidad", 0, 0, 0, "unidades")
+
+        ("Harina",
+         "King Arthur Bread Flour – Unbleached",
+         "10 lb",
+         8.38,
+         6,
+         60,
+         "lb"),
+
+        ("Azúcar",
+         "Domino Premium Pure Cane Granulated Sugar",
+         "25 lb",
+         19.48,
+         0.5,
+         12.5,
+         "lb"),
+
+        ("Azúcar glass",
+         "Member's Mark Cane Powdered Sugar",
+         "7 lb",
+         6.98,
+         1,
+         7,
+         "lb"),
+
+        ("Leche",
+         "Great Value Vitamin D Whole Milk 3.25%",
+         "1 galón",
+         3.12,
+         0.5,
+         0.5,
+         "galón"),
+
+        ("Mantequilla",
+         "Countryside Creamery Pure Irish Butter – Salted (ALDI, caja verde)",
+         "8 oz",
+         3.99,
+         6,
+         6,
+         "unidades"),
+
+        ("Huevos",
+         "Great Value Large White Eggs – Grade A",
+         "Caja 60",
+         8.12,
+         49,
+         49,
+         "huevos"),
+
+        ("Queso",
+         "Queso (presentación de la foto)",
+         "—",
+         0,
+         0.5,
+         0.5,
+         "pieza"),
+
+        ("Leche en polvo",
+         "NIDO Fortificada Dry Whole Milk Powder",
+         "56.4 oz",
+         18.12,
+         0,
+         0,
+         "oz"),
+
+        ("Mantequilla",
+         "Kerrygold Grass-Fed Salted Pure Irish Butter",
+         "8 oz",
+         4.68,
+         0,
+         0,
+         "unidades"),
+
+        ("Levadura",
+         "Saf-Instant / Lesaffre Instant Yeast",
+         "2 × 16 oz",
+         13.23,
+         0,
+         0,
+         "oz"),
+
+        ("Vainilla",
+         "Watkins Original Gourmet Baking Vanilla",
+         "8 fl oz / 236 ml",
+         7.98,
+         0,
+         0,
+         "ml"),
+
+        ("Sal",
+         "Morton Kosher Salt Flakes",
+         "3 lb",
+         3.97,
+         0,
+         0,
+         "lb"),
+
+        ("Pasas",
+         "Sun-Maid California Sun-Dried Raisins",
+         "32 oz / 2 lb",
+         6.97,
+         0,
+         0,
+         "oz"),
+
+        ("Coco",
+         "Great Value Organic Unsweetened Coconut Flakes",
+         "7 oz / 198 g",
+         3.78,
+         0,
+         0,
+         "g"),
+
+        ("Papel film",
+         "Glad Cling'n Seal",
+         "2 × 400 sq ft",
+         6.98,
+         0,
+         0,
+         "sq ft"),
+
+        ("Papel para hornear",
+         "Great Value Non-Stick Parchment Paper",
+         "100 sq ft",
+         5.67,
+         0,
+         0,
+         "sq ft"),
+
+        ("Papelón / Panela",
+         "Papelón (Panela) — presentación de la foto",
+         "unidad",
+         0,
+         0,
+         0,
+         "unidades")
     ]
 
     now = datetime.now().isoformat()
@@ -344,7 +447,12 @@ def init():
     for row in seed:
 
         exists = c.execute(
-            "SELECT id FROM inventory WHERE product=? AND presentation=? LIMIT 1",
+            """
+            SELECT id
+            FROM inventory
+            WHERE product=? AND presentation=?
+            LIMIT 1
+            """,
             (row[1], row[2])
         ).fetchone()
 
@@ -352,7 +460,8 @@ def init():
 
             reorder = 3 if row[1] == "Papelón / Panela" else 0
 
-            c.execute("""
+            c.execute(
+                """
                 INSERT INTO inventory(
                     category,
                     product,
@@ -366,20 +475,15 @@ def init():
                     created_at,
                     updated_at
                 )
-                VALUES(?,?,?,?,?,?,?, ?,1,?,?)
-            """, row[:7] + (reorder, now, now))
+                VALUES(?,?,?,?,?,?,?,?,1,?,?)
+                """,
+                row[:7] + (reorder, now, now)
+            )
 
 
-    # ============================================================
+    # ========================================================
     # RECETAS ACTUALIZADAS
-    # ============================================================
-
-    # Recetas documentadas a partir de las tarjetas que Josefina
-    # acaba de pasar.
-    #
-    # Se reemplazan las versiones anteriores de estas recetas para
-    # evitar duplicados y conservar las cantidades nuevas.
-    # Ejemplo: Pan Piñita = 70 g de mantequilla.
+    # ========================================================
 
     recipe_defs = [
 
@@ -469,7 +573,7 @@ def init():
             "320°F (160°C)",
             "18 a 25 min",
             "Tangzhong: 16 g harina + 43 g agua + 43 g leche. Mantequilla: 70 g."
-        ),
+        )
     ]
 
 
@@ -617,564 +721,3 @@ def init():
             ("Vainilla", "2", "cucharadas", "")
         ]
     }
-
-
-    # ============================================================
-    # REEMPLAZAR RECETAS ANTERIORES
-    # ============================================================
-
-    managed_names = [r[0] for r in recipe_defs]
-
-    for old in managed_names:
-
-        old_rows = c.execute(
-            "SELECT id FROM recipes WHERE name=?",
-            (old,)
-        ).fetchall()
-
-        for rr in old_rows:
-
-            c.execute(
-                "DELETE FROM recipes WHERE id=?",
-                (rr["id"],)
-            )
-
-
-    for r in recipe_defs:
-
-        cur = c.execute(
-            """
-            INSERT INTO recipes(
-                name,
-                yield_text,
-                oven_temp,
-                bake_time,
-                notes
-            )
-            VALUES(?,?,?,?,?)
-            """,
-            r
-        )
-
-        rid = cur.lastrowid
-
-        for item in recipe_ingredients.get(r[0], []):
-
-            c.execute(
-                """
-                INSERT INTO recipe_ingredients(
-                    recipe_id,
-                    ingredient_name,
-                    amount,
-                    unit,
-                    notes
-                )
-                VALUES(?,?,?,?,?)
-                """,
-                (rid, *item)
-            )
-
-
-    # ============================================================
-    # PROMOCIONES
-    # ============================================================
-
-    if c.execute(
-        "SELECT COUNT(*) FROM promotions"
-    ).fetchone()[0] == 0:
-
-        for p in PROMOTIONS:
-
-            c.execute(
-                """
-                INSERT INTO promotions(
-                    id,
-                    name,
-                    price,
-                    description,
-                    includes,
-                    active
-                )
-                VALUES(?,?,?,?,?,?)
-                """,
-                (
-                    p["id"],
-                    p["name"],
-                    p["price"],
-                    p.get("description", ""),
-                    p.get("includes", ""),
-                    1 if p.get("active") else 0
-                )
-            )
-
-
-    c.commit()
-
-    c.close()
-
-
-# ============================================================
-# INICIALIZACIÓN
-# ============================================================
-
-# Esto crea las tablas también cuando Render inicia
-# la aplicación usando Gunicorn.
-
-init()
-
-
-# ============================================================
-# INICIO / PEDIDOS
-# ============================================================
-
-@app.route("/")
-def home():
-
-    c = db()
-
-    orders = c.execute(
-        "SELECT * FROM orders ORDER BY delivery_date, id DESC"
-    ).fetchall()
-
-    result = []
-
-    for o in orders:
-
-        items = c.execute(
-            "SELECT * FROM items WHERE order_id=?",
-            (o["id"],)
-        ).fetchall()
-
-        pays = c.execute(
-            "SELECT * FROM payments WHERE order_id=?",
-            (o["id"],)
-        ).fetchall()
-
-        total = sum(
-            i["qty"] * i["unit_price"]
-            for i in items
-        )
-
-        paid = sum(
-            p["amount"]
-            for p in pays
-        )
-
-        result.append(
-            SafeOrder(
-                dict(
-                    o,
-                    items=[dict(i) for i in items],
-                    payments=[dict(p) for p in pays],
-                    total=total,
-                    paid=paid,
-                    balance=max(0, total - paid)
-                )
-            )
-        )
-
-
-    inventory_for_home = [
-        dict(r)
-        for r in c.execute(
-            """
-            SELECT * FROM inventory
-            WHERE active=1
-            ORDER BY category, product
-            """
-        ).fetchall()
-    ]
-
-    recipes_for_home = []
-
-    for rr in c.execute(
-        """
-        SELECT * FROM recipes
-        WHERE active=1
-        ORDER BY name
-        """
-    ).fetchall():
-
-        rd = dict(rr)
-
-        rd["ingredients"] = [
-            dict(x)
-            for x in c.execute(
-                """
-                SELECT ingredient_name, amount, unit, notes
-                FROM recipe_ingredients
-                WHERE recipe_id=?
-                ORDER BY id
-                """,
-                (rr["id"],)
-            ).fetchall()
-        ]
-
-        recipes_for_home.append(rd)
-
-
-    c.close() 
- 
-
-
-# ============================================================
-# CLIENTES FRECUENTES
-# ============================================================
-
-@app.get("/clients")
-def clients():
-    q = (request.args.get("q") or "").strip()
-    c = db()
-
-    rows = c.execute(
-        "SELECT DISTINCT client FROM orders "
-        "WHERE client LIKE ? COLLATE NOCASE "
-        "ORDER BY client LIMIT 10",
-        ((q + "%") if q else "%",)
-    ).fetchall()
-
-    result = []
-
-    for row in rows:
-        client = row["client"]
-
-        order = c.execute(
-            "SELECT id FROM orders "
-            "WHERE client=? AND status!='Cancelado' "
-            "ORDER BY delivery_date DESC,id DESC LIMIT 1",
-            (client,)
-        ).fetchone()
-
-        items = [
-            dict(x)
-            for x in c.execute(
-                "SELECT product,qty,unit_price FROM items "
-                "WHERE order_id=? AND (promotion_id='' OR promotion_id IS NULL)",
-                (order["id"],)
-            ).fetchall()
-        ] if order else []
-
-        result.append({
-            "client": client,
-            "items": items
-        })
-
-    c.close()
-    return jsonify(result)
-
-
-# ============================================================
-# PROMOCIONES
-# ============================================================
-
-@app.get("/promotions")
-def get_promotions():
-    c = db()
-
-    rows = c.execute(
-        "SELECT * FROM promotions ORDER BY name"
-    ).fetchall()
-
-    c.close()
-
-    return jsonify([
-        dict(x) for x in rows
-    ])
-
-
-@app.post("/promotions")
-def create_promotion():
-
-    data = request.get_json() or {}
-
-    name = (data.get("name") or "").strip()
-
-    if not name:
-        return jsonify({"ok": False}), 400
-
-    pid = "promo_" + str(
-        abs(hash(name + datetime.now().isoformat()))
-    )
-
-    c = db()
-
-    c.execute(
-        """
-        INSERT INTO promotions(
-            id,
-            name,
-            price,
-            description,
-            includes,
-            active
-        )
-        VALUES(?,?,?,?,?,1)
-        """,
-        (
-            pid,
-            name,
-            float(data.get("price") or 0),
-            data.get("description", ""),
-            data.get("includes", "")
-        )
-    )
-
-    c.commit()
-    c.close()
-
-    return jsonify({
-        "ok": True,
-        "id": pid
-    })
-
-
-@app.put("/promotions/<pid>")
-def update_promotion(pid):
-
-    data = request.get_json() or {}
-
-    c = db()
-
-    c.execute(
-        """
-        UPDATE promotions
-        SET name=?,
-            price=?,
-            description=?,
-            includes=?,
-            active=?
-        WHERE id=?
-        """,
-        (
-            (data.get("name") or "").strip(),
-            float(data.get("price") or 0),
-            data.get("description", ""),
-            data.get("includes", ""),
-            1 if data.get("active", True) else 0,
-            pid
-        )
-    )
-
-    c.commit()
-    c.close()
-
-    return jsonify({"ok": True})
-
-
-@app.delete("/promotions/<pid>")
-def deactivate_promotion(pid):
-
-    c = db()
-
-    c.execute(
-        "UPDATE promotions SET active=0 WHERE id=?",
-        (pid,)
-    )
-
-    c.commit()
-    c.close()
-
-    return jsonify({"ok": True})
-
-
-# ============================================================
-# RECETAS
-# ============================================================
-
-@app.get("/recipes")
-def get_recipes():
-
-    c = db()
-    result = []
-
-    for rr in c.execute(
-        "SELECT * FROM recipes "
-        "WHERE active=1 ORDER BY name"
-    ).fetchall():
-
-        rd = dict(rr)
-
-        rd["ingredients"] = [
-            dict(x)
-            for x in c.execute(
-                """
-                SELECT ingredient_name,
-                       amount,
-                       unit,
-                       notes
-                FROM recipe_ingredients
-                WHERE recipe_id=?
-                ORDER BY id
-                """,
-                (rr["id"],)
-            ).fetchall()
-        ]
-
-        result.append(rd)
-
-    c.close()
-
-    return jsonify(result)
-
-
-# ============================================================
-# INVENTARIO
-# ============================================================
-
-@app.get("/inventory")
-def get_inventory():
-
-    c = db()
-
-    rows = c.execute(
-        """
-        SELECT *
-        FROM inventory
-        WHERE active=1
-        ORDER BY category,product
-        """
-    ).fetchall()
-
-    c.close()
-
-    return jsonify([
-        dict(x) for x in rows
-    ])
-
-
-@app.post("/inventory")
-def create_inventory():
-
-    data = request.get_json() or {}
-
-    if not (data.get("category") or "").strip() \
-       or not (data.get("product") or "").strip():
-
-        return jsonify({"ok": False}), 400
-
-    now = datetime.now().isoformat()
-
-    c = db()
-
-    c.execute(
-        """
-        INSERT INTO inventory(
-            category,
-            product,
-            presentation,
-            purchase_price,
-            current_qty,
-            equivalent_qty,
-            equivalent_unit,
-            reorder_point,
-            active,
-            created_at,
-            updated_at
-        )
-        VALUES(?,?,?,?,?,?,?,?,1,?,?)
-        """,
-        (
-            (data.get("category") or "").strip(),
-            (data.get("product") or "").strip(),
-            data.get("presentation", ""),
-            float(data.get("purchase_price") or 0),
-            float(data.get("current_qty") or 0),
-            float(data.get("equivalent_qty") or 0),
-            data.get("equivalent_unit", ""),
-            float(data.get("reorder_point") or 0),
-            now,
-            now
-        )
-    )
-
-    c.commit()
-    c.close()
-
-    return jsonify({"ok": True})
-
-
-@app.put("/inventory/<int:iid>")
-def update_inventory(iid):
-
-    data = request.get_json() or {}
-
-    now = datetime.now().isoformat()
-
-    c = db()
-
-    c.execute(
-        """
-        UPDATE inventory
-        SET category=?,
-            product=?,
-            presentation=?,
-            purchase_price=?,
-            current_qty=?,
-            equivalent_qty=?,
-            equivalent_unit=?,
-            reorder_point=?,
-            updated_at=?
-        WHERE id=?
-        """,
-        (
-            (data.get("category") or "").strip(),
-            (data.get("product") or "").strip(),
-            data.get("presentation", ""),
-            float(data.get("purchase_price") or 0),
-            float(data.get("current_qty") or 0),
-            float(data.get("equivalent_qty") or 0),
-            data.get("equivalent_unit", ""),
-            float(data.get("reorder_point") or 0),
-            now,
-            iid
-        )
-    )
-
-    c.commit()
-    c.close()
-
-    return jsonify({"ok": True})
-
-
-@app.delete("/inventory/<int:iid>")
-def delete_inventory(iid):
-
-    c = db()
-
-    c.execute(
-        """
-        UPDATE inventory
-        SET active=0,
-            updated_at=?
-        WHERE id=?
-        """,
-        (
-            datetime.now().isoformat(),
-            iid
-        )
-    )
-
-    c.commit()
-    c.close()
-
-    return jsonify({"ok": True})
-
-
-# ============================================================
-# EJECUCIÓN LOCAL / RENDER
-# ============================================================
-
-if __name__ == "__main__":
-
-    port = int(
-        os.environ.get(
-            "PORT",
-            5000
-        )
-    )
-
-    app.run(
-        host="0.0.0.0",
-        port=port,
-        debug=False
-    )
