@@ -19,35 +19,37 @@ PRODUCTS = [
     ("Pan de Jamón 16 pulgadas", 34.00),
     ("Pan de Jamón con queso crema", 35.00),
     ("Mini Pan de Jamón", 10.00),
-    ("Mini Pan de Jamón con queso crema", 12.00),
+    ("Mini Pan de Jamón con queso crema", 13.00),
     ("Mini Lunch (jamón y queso)", 6.50),
-    ("Cachitos de jamón y bacon", 4.50),
-    ("Pan francés", 1.00),
+    ("Cachitos de jamón y bacon", 5.00),
+    ("Pan francés", 0.75),
+    ("Pan Francés Especial", 1.50),
     ("Pan Canilla", 2.50),
     ("Pan Campesino", 3.00),
-    ("Pan de queso pequeño 7.5 pulgadas", 10.00),
-    ("Pan de queso mediano 12 pulgadas", 15.00),
-    ("Pan de queso grande 16 pulgadas", 20.00),
+    ("Pan de queso pequeño 7.5 pulgadas", 11.00),
+    ("Pan de queso mediano 12 pulgadas", 17.00),
+    ("Pan de queso grande 16 pulgadas", 22.00),
     ("Pack 6 mini panes de queso", 10.00),
     ("Pan Sandwich tipo Subway", 8.00),
     ("Extra Queso + Guayaba", 1.00),
     ("Extra Queso + Tocineta", 1.00),
     ("Extra Guayaba + Queso", 1.00),
     ("Extra Triple relleno", 2.00),
-    ("Dulce Piñita (6)", 8.50),
-    ("Pack mini Pan de Leche (9)", 8.00),
-    ("Pan de Guayaba", 4.50),
-    ("Pan de Guayaba Grande", 16.00),
-    ("Golfeado Grande", 4.50),
-    ("Pack 6 Golfeados", 10.00),
-    ("Pan de Queso Dulce", 2.00),
-    ("Corazón de Piña (6)", 10.00),
+    ("Dulce Piñita (6)", 7.00),
+    ("Pack mini Pan de Leche (9)", 7.00),
+    ("Pan de Guayaba", 4.00),
+    ("Pan de Guayaba Grande", 12.00),
+    ("Golfeado Grande", 4.00),
+    ("Pack 6 Golfeados", 7.00),
+    ("Pan de Queso Dulce", 1.50),
+    ("Corazón de Piña (6)", 9.00),
     ("Piña & Coco (6)", 10.00),
     ("Pan Dulce de Coco (6)", 10.00),
-    ("Cinnamon Roll Tradicional", 4.50),
+    ("Cinnamon Roll Tradicional", 4.00),
     ("Cinnamon Rolls Pack de 2", 8.00),
     ("Cinnamon Rolls Pack de 8", 16.00),
-    ("Lemon Roll Tradicional", 4.50),
+    ("Cinnamon Rolls Pack de 12", 20.00),
+    ("Lemon Roll Tradicional", 4.00),
     ("Lemon Rolls Pack de 2", 8.00),
     ("Lemon Rolls Pack de 8", 16.00),
     ("Topping Nutella", 2.00),
@@ -59,11 +61,12 @@ PRODUCTS = [
     ("Panelitas San Joaquín (Pack 5 unidades)", 1.00),
     ("Pastelito individual (Incluye salsa)", 3.00),
     ("25 Mini Pastelitos surtidos (Incluye salsa)", 24.00),
-    ("50 Mini Pastelitos surtidos (Incluye salsa)", 47.00),
+    ("50 Mini Pastelitos surtidos (Incluye salsa)", 45.00),
     ("Arepitas de Yuca - Empaque 10 unidades", 12.00),
     ("Pan Andino Regular", 14.00),
     ("Pan Andino con Talvina (Masa Madre)", 15.00),
     ("Pan Trenza", 15.00),
+    ("Pan Masa Madre", 15.00),
 ]
 
 PROMOTIONS = [{
@@ -211,152 +214,155 @@ def init():
                 ) VALUES(?,?,?,?,?,?,?,?,1,?,?)
             """, row[:7] + (row[7], now, now))
 
+    material_seed = [
+        ("Papel para hornear", "Great Value Non-Stick Parchment Paper", "100 sq ft", 5.67, 1.5, 150, "sq ft", 1),
+        ("Papel film", "Glad Cling'n Seal", "2 × 400 sq ft", 6.98, 2, 800, "sq ft", 1),
+    ]
+    for row in material_seed:
+        old = c.execute("SELECT * FROM inventory WHERE product=? LIMIT 1", (row[1],)).fetchone()
+        exists_m = c.execute("SELECT id FROM materials WHERE product=? LIMIT 1", (row[1],)).fetchone()
+        if not exists_m:
+            c.execute("""
+                INSERT INTO materials(
+                    category,product,presentation,purchase_price,current_qty,
+                    equivalent_qty,equivalent_unit,reorder_point,active,created_at,updated_at
+                ) VALUES(?,?,?,?,?,?,?,?,1,?,?)
+            """, row + (now, now))
+        if old:
+            c.execute("UPDATE inventory SET active=0,updated_at=? WHERE product=?", (now, row[1]))
+    # Mantener los materiales conocidos actualizados.
+    for row in material_seed:
+        c.execute("""
+            UPDATE materials SET category=?,presentation=?,purchase_price=?,
+            current_qty=?,equivalent_qty=?,equivalent_unit=?,reorder_point=?,
+            active=1,updated_at=? WHERE product=?
+        """, (row[0],row[2],row[3],row[4],row[5],row[6],row[7],now,row[1]))
+
+    # Papelón/Panela Del Trópico Oro: una unidad actual; recompra en 3.
+    p = c.execute("SELECT id FROM inventory WHERE product LIKE 'Papelón%' OR product LIKE 'Papelon%' LIMIT 1").fetchone()
+    if p:
+        c.execute("""UPDATE inventory SET category=?,product=?,presentation=?,purchase_price=?,
+            current_qty=?,equivalent_qty=?,equivalent_unit=?,reorder_point=?,active=1,updated_at=? WHERE id=?""",
+            ("Azúcar / Endulzantes","Papelón / Panela Del Trópico Oro","16 oz",2.92,1,1,"unidad",3,now,p["id"]))
+    else:
+        c.execute("""INSERT INTO inventory(category,product,presentation,purchase_price,current_qty,
+            equivalent_qty,equivalent_unit,reorder_point,active,created_at,updated_at)
+            VALUES(?,?,?,?,?,?,?,?,1,?,?)""",
+            ("Azúcar / Endulzantes","Papelón / Panela Del Trópico Oro","16 oz",2.92,1,1,"unidad",3,now,now))
+
+    # Segundo queso: mozzarella rallada.
+    m = c.execute("SELECT id FROM inventory WHERE product LIKE '%Mozzarella%' LIMIT 1").fetchone()
+    if not m:
+        c.execute("""INSERT INTO inventory(category,product,presentation,purchase_price,current_qty,
+            equivalent_qty,equivalent_unit,reorder_point,active,created_at,updated_at)
+            VALUES(?,?,?,?,?,?,?,?,1,?,?)""",
+            ("Queso","Member's Mark Mozzarella rallada","5 lb",0,0,0,"lb",0,now,now))
+
     recipe_defs = [
-        ("Pan Francés", "13 panes de 90 g", "350°F (180°C)", "18 min", "Prefermento + masa."),
-        ("Pan de Leche (9 pancitos)", "9 pancitos aprox. 65 g", "350°F (180°C)", "15 a 20 min", "Versión rápida."),
-        ("Pan de Queso", "2 panes grandes o 13 pequeños", "160°C", "35 min", "520 g harina y 400 g queso."),
+        ("Pan Francés", "14 panes de 75 g", "350°F (180°C)", "18 min", "Prefermento + masa."),
+        ("Pan de Leche (9 pancitos)", "9 pancitos", "350°F (180°C)", "15 a 20 min", "Pack de 9."),
+        ("Pan de Leche Tradicional", "80 g pancitos o 400 g panes largos", "350°F (180°C)", "Aprox. 40 min", "Larga fermentación con prefermento."),
+        ("Pan de Queso", "2 panes grandes o 13 pequeños", "160°C", "35 min", "Receta oficial: 500 g de harina y 400 g de queso."),
         ("Pan Dulce de Coco", "13 unidades aprox.", "340°F (170°C)", "15 min", "Incluye melado y cobertura."),
         ("Pan de Guayaba", "Aprox. 300 g c/u", "350°F (180°C)", "20 min", "Relleno: pasta de guayaba al gusto."),
-        ("Pan de Molde — Dulce Remolino de Chocolate", "1 pan grande de 30 cm", "356°F (180°C)", "50 min", "Masa blanca y masa de chocolate con 36 g de cacao."),
-        ("Pan Tipo Subway", "5 panes de aprox. 200 g", "392°F (200°C)", "10 a 15 min", "90 ml aceite de oliva; 9 g seca o 22 g fresca."),
-        ("Pan de Leche Tradicional", "80 g pancitos o 400 g panes largos", "350°F (180°C)", "Aprox. 40 min", "Larga fermentación con prefermento."),
-        ("Cachitos Venezolanos — miga 50%", "16 cachitos", "315°F (160°C)", "20 a 25 min", "Biga 50%; 80 g relleno por cachito."),
-        ("Golfeados Venezolanos", "16 golfeados", "350°F (180°C)", "15 min + 10 min", "500 g papelón y queso blanco duro."),
-        ("Pan Piñita Mejorada", "14 porciones de 85 a 90 g", "320°F (160°C)", "18 a 25 min", "Tangzhong: 16 g harina + 43 g agua + 43 g leche."),
+        ("Pan de Molde — Dulce Remolino de Chocolate", "1 pan grande de 30 cm", "356°F (180°C)", "50 min", "Masa blanca y masa de chocolate."),
+        ("Pan Tipo Subway", "5 panes de aprox. 200 g", "392°F (200°C)", "10 a 15 min", "Con aceite de oliva; barnizado y topping."),
+        ("Cachitos Venezolanos — miga 50%", "16 cachitos", "315°F (160°C)", "20 a 25 min", "Biga 50%; 100 g de masa y 80 g de relleno por cachito."),
+        ("Cachitos Venezolanos — 1,000 g", "20–22 cachitos aprox.", "180°C (356°F)", "18 a 22 min", "Versión grande con 1.000 g de harina."),
+        ("Golfeados Venezolanos", "16 golfeados", "350°F (180°C)", "15 min + 10 min", "500 g de papelón y queso blanco duro."),
+        ("Pan Piñita Mejorada", "14 porciones de 85 a 90 g", "300°F (150°C)", "25 a 30 min", "Tangzhong: 16 g harina + 43 g agua + 43 g leche."),
+        ("Pan Andino con Talvina", "2 panes andinos", "170°C (338°F)", "40 a 50 min", "Fermentación con Talvina: 12 a 16 horas."),
+        ("Cinnamon Rolls", "12 rolls grandes", "180°C (350°F)", "20 a 25 min", "Tiempo total 3 a 4 horas según levado."),
+        ("Pancitos de Queso Dulce", "Según ficha de Josefina", "", "", "Receta oficial cargada desde la ficha."),
     ]
 
     recipe_ingredients = {
         "Pan Francés": [
-            ("Harina", "600", "g", "40 g prefermento + 560 g masa"),
-            ("Agua", "180", "g", "80 g prefermento + 100 g masa"),
-            ("Leche", "140", "g", "masa"),
-            ("Azúcar", "40", "g", "10 g prefermento + 30 g masa"),
-            ("Levadura", "6", "g", "seca instantánea"),
-            ("Sal", "10", "g", ""),
-            ("Mantequilla", "40", "g", ""),
+            ("Harina","600","g","40 g prefermento + 560 g masa"),("Agua","180","g","80 g prefermento + 100 g masa"),
+            ("Leche","140","g","masa"),("Azúcar","40","g","10 g prefermento + 30 g masa"),("Levadura","8","g","prefermento"),
+            ("Sal","10","g",""),("Mantequilla","40","g",""),
         ],
         "Pan de Leche (9 pancitos)": [
-            ("Harina de trigo", "500", "g", ""),
-            ("Levadura", "5", "g", "instantánea"),
-            ("Azúcar", "80", "g", ""),
-            ("Sal", "5", "g", ""),
-            ("Leche", "250", "ml", "tibia"),
-            ("Mantequilla", "50", "g", "derretida"),
-            ("Huevo", "1", "unidad", "masa"),
-            ("Vainilla", "1", "cdita", "opcional"),
-            ("Azúcar glass", "50", "g", "para espolvorear"),
-            ("Huevo", "1", "unidad", "batido para barnizar"),
-        ],
-        "Pan de Queso": [
-            ("Harina panadera", "520", "g", ""),
-            ("Huevo", "1", "unidad", ""),
-            ("Leche líquida", "250", "g", "tibia"),
-            ("Azúcar", "60", "g", ""),
-            ("Levadura", "7", "g", "instantánea"),
-            ("Sal", "9", "g", ""),
-            ("Mantequilla", "80", "g", "pomada"),
-            ("Queso", "400", "g", "llanero o mezcla llanero/mozzarella"),
-        ],
-        "Pan Dulce de Coco": [
-            ("Harina de fuerza", "500", "g", ""),
-            ("Azúcar", "100", "g", "masa"),
-            ("Leche en polvo", "40", "g", ""),
-            ("Mantequilla", "40", "g", ""),
-            ("Huevos", "2", "unidades", ""),
-            ("Agua o leche", "200", "ml", ""),
-            ("Levadura fresca", "10", "g", "o 7 g seca"),
-            ("Sal", "7", "g", ""),
-            ("Esencia de coco", "7", "g", ""),
-            ("Canela", "1", "pizca", ""),
-            ("Coco rallado", "100", "g", "masa/cobertura"),
-            ("Azúcar", "200", "g", "melado"),
-            ("Agua", "200", "ml", "melado"),
-            ("Azúcar", "100", "g", "corteza"),
-            ("Coco rallado", "100", "g", "corteza"),
-        ],
-        "Pan de Guayaba": [
-            ("Harina panadera", "850", "g", ""),
-            ("Leche entera", "400", "ml", ""),
-            ("Azúcar", "120", "g", ""),
-            ("Sal", "3", "g", ""),
-            ("Huevos", "2", "unidades", ""),
-            ("Mantequilla sin sal", "95", "g", ""),
-            ("Levadura seca", "8", "g", ""),
-            ("Pasta de guayaba", "al gusto", "", "relleno"),
-        ],
-        "Pan de Molde — Dulce Remolino de Chocolate": [
-            ("Harina todo uso", "450", "g", ""),
-            ("Azúcar", "110", "g", ""),
-            ("Sal", "2.5", "g", ""),
-            ("Levadura seca instantánea", "10", "g", ""),
-            ("Huevo", "1", "unidad", ""),
-            ("Leche", "250", "ml", ""),
-            ("Mantequilla sin sal", "40", "g", ""),
-            ("Cacao", "36", "g", ""),
-            ("Aceite", "cantidad necesaria", "", "para engrasar"),
-            ("Papel aluminio", "cantidad necesaria", "", ""),
-        ],
-        "Pan Tipo Subway": [
-            ("Harina panadera", "600", "g", ""),
-            ("Leche tibia", "350", "g", ""),
-            ("Aceite de oliva virgen light", "90", "ml", ""),
-            ("Azúcar", "30", "g", ""),
-            ("Sal", "10", "g", ""),
-            ("Levadura instantánea", "9", "g", "o 22 g fresca"),
-            ("Leche", "cantidad necesaria", "", "para barnizar"),
-            ("Parmesano", "cantidad necesaria", "", ""),
-            ("Orégano", "cantidad necesaria", "", ""),
+            ("Harina de trigo","500","g",""),("Levadura","5","g","instantánea"),("Azúcar","80","g",""),("Sal","5","g",""),
+            ("Leche","250","ml","tibia"),("Mantequilla","50","g","derretida"),("Huevo","1","unidad","masa"),
+            ("Vainilla","1","cdita","opcional"),("Azúcar glass","50","g","para espolvorear"),("Huevo","1","unidad","barnizar"),
         ],
         "Pan de Leche Tradicional": [
-            ("Harina", "1750", "g", "250 g prefermento + 1500 g masa"),
-            ("Azúcar", "425", "g", "125 g prefermento + 300 g masa"),
-            ("Agua", "250", "g", "prefermento"),
-            ("Mantequilla", "180", "g", ""),
-            ("Huevos", "3", "unidades", ""),
-            ("Sal", "30", "g", ""),
-            ("Leche en polvo", "60", "g", ""),
-            ("Agua/leche", "625", "ml", ""),
-            ("Levadura seca", "6", "g", ""),
+            ("Harina","1750","g","250 g prefermento + 1500 g masa"),("Azúcar","425","g","125 g prefermento + 300 g masa"),
+            ("Agua","250","g","prefermento"),("Mantequilla","180","g",""),("Huevos","3","unidades",""),
+            ("Sal","30","g",""),("Leche en polvo","60","g",""),("Agua/leche","625","ml",""),("Levadura seca","6","g",""),
+        ],
+        "Pan de Queso": [
+            ("Harina panadera","500","g",""),("Huevo","1","unidad",""),("Leche líquida","250","g","tibia"),
+            ("Azúcar","60","g",""),("Levadura","7","g","instantánea"),("Sal","9","g",""),("Mantequilla","80","g","pomada"),
+            ("Queso llanero / mozzarella","400","g",""),
+        ],
+        "Pan Dulce de Coco": [
+            ("Harina de fuerza","500","g",""),("Azúcar","100","g","masa"),("Leche en polvo","40","g",""),("Mantequilla","40","g",""),
+            ("Huevos","2","unidades",""),("Agua o leche","200","ml",""),("Levadura fresca","10","g","o 7 g seca"),
+            ("Sal","7","g",""),("Esencia de coco","7","g",""),("Canela","1","pizca",""),("Coco rallado","100","g","masa/cobertura"),
+            ("Azúcar","200","g","melado"),("Agua","200","ml","melado"),("Azúcar","100","g","corteza"),("Coco rallado","100","g","corteza"),
+        ],
+        "Pan de Guayaba": [
+            ("Harina panadera","850","g",""),("Leche entera","400","ml",""),("Azúcar","120","g",""),("Sal","3","g","1 pizca"),
+            ("Huevos","2","unidades",""),("Mantequilla sin sal","95","g",""),("Levadura seca","8","g",""),
+            ("Pasta de guayaba","al gusto","","relleno"),
+        ],
+        "Pan de Molde — Dulce Remolino de Chocolate": [
+            ("Harina todo uso","450","g",""),("Azúcar","110","g",""),("Sal","2.5","g",""),
+            ("Levadura seca instantánea","10","g",""),("Huevo","1","unidad",""),("Leche","250","ml",""),
+            ("Mantequilla sin sal","40","g",""),("Cacao","36","g",""),("Aceite","cantidad necesaria","","para engrasar"),
+            ("Papel aluminio","cantidad necesaria","",""),
+        ],
+        "Pan Tipo Subway": [
+            ("Harina panadera","600","g",""),("Leche tibia","350","g",""),("Aceite de oliva virgen light","90","ml",""),
+            ("Azúcar","30","g",""),("Sal","10","g",""),("Levadura instantánea","9","g","o 22 g fresca"),
+            ("Leche","cantidad necesaria","","para barnizar"),("Parmesano","cantidad necesaria","",""),("Orégano","cantidad necesaria","",""),
         ],
         "Cachitos Venezolanos — miga 50%": [
-            ("Harina", "627", "g", "173 g biga + 454 g final"),
-            ("Leche", "272", "g", "86 g biga + 186 g final"),
-            ("Levadura instantánea", "7.57", "g", "0.57 g biga + 7 g final"),
-            ("Sal", "7", "g", ""),
-            ("Huevos", "2", "unidades", "aprox. 100 g"),
-            ("Mantequilla salada", "100", "g", ""),
-            ("Azúcar", "100", "g", ""),
-            ("Jamón ahumado", "760", "g", ""),
-            ("Tocineta", "200", "g", ""),
+            ("Harina","627","g","173 g biga + 454 g final"),("Leche","272","g","86 g biga + 186 g final"),
+            ("Levadura instantánea","7.57","g","0.57 g biga + 7 g final"),("Sal","7","g",""),("Huevos","2","unidades","aprox. 100 g"),
+            ("Mantequilla salada","100","g",""),("Azúcar","100","g",""),("Jamón ahumado","760","g",""),("Tocineta","200","g",""),
+        ],
+        "Cachitos Venezolanos — 1,000 g": [
+            ("Harina de trigo","1000","g",""),("Azúcar","120","g",""),("Sal","16","g",""),("Levadura seca instantánea","10","g",""),
+            ("Agua o leche tibia","400","ml",""),("Mantequilla","120","g",""),("Huevos","2","unidades",""),
+            ("Leche en polvo","4","cucharadas","opcional"),("Jamón de pierna","al gusto","","relleno"),("Tocineta","al gusto","","relleno"),
         ],
         "Golfeados Venezolanos": [
-            ("Harina panadera", "800", "g", ""),
-            ("Leche entera", "430", "ml", "280 ml masa + 150 ml barniz"),
-            ("Mantequilla", "130", "g", ""),
-            ("Azúcar", "150", "g", ""),
-            ("Sal", "10", "g", ""),
-            ("Huevos", "2", "unidades", ""),
-            ("Vainilla", "2", "cucharadas", ""),
-            ("Levadura instantánea", "8", "g", ""),
-            ("Queso blanco duro", "500", "g", ""),
-            ("Papelón", "500", "g", ""),
-            ("Agua", "200", "ml", "melado"),
-            ("Melado", "70", "ml", "para barnizar"),
+            ("Harina panadera","800","g",""),("Leche entera","430","ml","280 ml masa + 150 ml barniz"),("Mantequilla","130","g",""),
+            ("Azúcar","150","g",""),("Sal","10","g",""),("Huevos","2","unidades",""),("Vainilla","2","cucharadas",""),
+            ("Levadura instantánea","8","g",""),("Queso blanco duro","500","g",""),("Papelón","500","g","parte rallado y parte melado"),
+            ("Agua","200","ml","melado"),("Melado","70","ml","para barnizar"),
         ],
         "Pan Piñita Mejorada": [
-            ("Harina panadera", "616", "g", "600 g masa + 16 g tangzhong"),
-            ("Agua", "43", "g", "tangzhong"),
-            ("Leche", "243", "g", "43 g tangzhong + 200 g masa"),
-            ("Azúcar", "150", "g", ""),
-            ("Leche en polvo", "20", "g", ""),
-            ("Levadura instantánea", "8", "g", ""),
-            ("Mantequilla", "70", "g", ""),
-            ("Huevo", "1", "unidad", "más 1 yema"),
-            ("Esencia de piña", "2", "cucharadas", ""),
-            ("Sal", "3-4", "g", ""),
-            ("Vainilla", "2", "cucharadas", ""),
+            ("Harina panadera","616","g","600 g masa + 16 g Tangzhong"),("Agua","43","g","Tangzhong"),
+            ("Leche","243","g","43 g Tangzhong + 200 g masa"),("Azúcar","150","g",""),("Leche en polvo","20","g",""),
+            ("Levadura instantánea","6","g",""),("Mantequilla","70","g","pomada"),("Huevo","1","unidad","más 1 yema"),
+            ("Esencia de piña","2","cucharadas",""),("Sal","3-4","g",""),("Vainilla","2","cucharadas",""),
+        ],
+        "Pan Andino con Talvina": [
+            ("Harina de trigo panadera","550","g",""),("Masa madre Talvina","120","g","activa"),("Leche líquida","140","g",""),
+            ("Huevo entero","1","unidad",""),("Azúcar","150","g",""),("Mantequilla","55","g",""),("Sal","3","g",""),
+            ("Manteca de cerdo","55","g","o mantequilla"),("Miel de abejas","5","g",""),("Azúcar vainillado","7","g","o esencia de vainilla"),
+        ],
+        "Cinnamon Rolls": [
+            ("Harina de trigo","500","g","masa"),("Azúcar","80","g","masa"),("Leche en polvo","25","g","masa"),
+            ("Sal","7","g","masa"),("Levadura instantánea","10","g","masa"),("Huevo","1","50 g","masa"),("Leche tibia","250","g","masa"),
+            ("Mantequilla sin sal","80","g","masa"),("Mantequilla sin sal","100","g","relleno"),("Azúcar morena","150","g","relleno"),
+            ("Canela en polvo","20","g","relleno"),("Mantequilla sin sal","85","g","glaseado"),("Queso crema","85","g","glaseado"),
+            ("Azúcar glas","165","g","glaseado"),("Esencia de vainilla","5","ml","glaseado"),("Leche","15","ml","opcional"),
+        ],
+        "Pancitos de Queso Dulce": [
+            ("Harina panadera","500","g","",""),
+            ("Azúcar","al gusto","","según ficha"),
+            ("Queso","al gusto","","según ficha"),
         ],
     }
+
+
+    for old_name in ("Cachitos Venezolanos — 500 g", "Pan Piñita Mejorada", "Pan de Queso", "Cachitos Venezolanos — miga 50%"):
+        c.execute("DELETE FROM recipes WHERE name=?", (old_name,))
 
     for r in recipe_defs:
         exists = c.execute("SELECT id FROM recipes WHERE name=?", (r[0],)).fetchone()
@@ -433,6 +439,10 @@ def home():
         ).fetchall()
     ]
 
+    materials = [dict(x) for x in c.execute(
+        "SELECT * FROM materials WHERE active=1 ORDER BY category,product"
+    ).fetchall()]
+
     today = datetime.now().strftime("%Y-%m-%d")
     active = [o for o in orders if o["status"] not in ("Entregado", "Cancelado")]
     finalized = [o for o in orders if o["status"] in ("Entregado", "Cancelado")]
@@ -462,7 +472,7 @@ def home():
         finalized_orders=finalized,
         inventory=inventory,
         recipes=recipes,
-        materials=[],
+        materials=materials,
         dashboard=dashboard,
     )
 
@@ -540,6 +550,13 @@ def save_order(order_id=None):
 @app.delete("/orders/<int:order_id>")
 def delete_order(order_id):
     c = db()
+    row = c.execute("SELECT status,is_test FROM orders WHERE id=?", (order_id,)).fetchone()
+    if not row:
+        c.close()
+        return jsonify({"ok": False, "error": "Pedido no encontrado"}), 404
+    if int(row["is_test"] or 0) == 0 and row["status"] == "Entregado":
+        c.close()
+        return jsonify({"ok": False, "error": "Los pedidos reales entregados no se pueden eliminar."}), 403
     c.execute("DELETE FROM orders WHERE id=?", (order_id,))
     c.commit()
     c.close()
@@ -552,12 +569,13 @@ def clients():
     c = db()
     rows = c.execute(
         "SELECT DISTINCT client FROM orders WHERE client LIKE ? COLLATE NOCASE "
-        "ORDER BY client LIMIT 10", ((q + "%") if q else "%",)
+        "AND is_test=0 ORDER BY client LIMIT 10", ((q + "%") if q else "%",)
     ).fetchall()
     result = []
     for row in rows:
         order = c.execute(
-            "SELECT id FROM orders WHERE client=? AND status!='Cancelado' "
+            "SELECT id,delivery_date,status,notes FROM orders "
+            "WHERE client=? AND status!='Cancelado' AND is_test=0 "
             "ORDER BY delivery_date DESC,id DESC LIMIT 1", (row["client"],)
         ).fetchone()
         items = []
@@ -567,7 +585,14 @@ def clients():
                 "WHERE order_id=? AND (promotion_id='' OR promotion_id IS NULL)",
                 (order["id"],)
             ).fetchall()]
-        result.append({"client": row["client"], "items": items})
+        result.append({
+            "client": row["client"],
+            "items": items,
+            "last_order_id": order["id"] if order else None,
+            "last_delivery_date": order["delivery_date"] if order else "",
+            "last_status": order["status"] if order else "",
+            "last_notes": order["notes"] if order else "",
+        })
     c.close()
     return jsonify(result)
 
