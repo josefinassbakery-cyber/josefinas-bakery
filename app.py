@@ -354,7 +354,7 @@ def init():
             ("Azúcar glas","165","g","glaseado"),("Esencia de vainilla","5","ml","glaseado"),("Leche","15","ml","opcional"),
         ],
         "Pancitos de Queso Dulce": [
-            ("Harina panadera","500","g","",""),
+            ("Harina panadera","500","g",""),
             ("Azúcar","al gusto","","según ficha"),
             ("Queso","al gusto","","según ficha"),
         ],
