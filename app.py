@@ -10,12 +10,18 @@ app = Flask(__name__)
 
 
 class SafeOrder(dict):
+    """Evita que Jinja confunda la clave 'items' con dict.items()."""
     @property
-    def items_list(self):
-        return self.get("items", [])
+    def items(self):
+        return dict.get(self, "items", [])
 
+
+# ============================================================
+# MENÚ OFICIAL — ORDEN DE LAS 5 SECCIONES
+# ============================================================
 
 PRODUCTS = [
+    # 1. PANES SALADOS
     ("Pan de Jamón 16 pulgadas", 34.00),
     ("Pan de Jamón con queso crema", 35.00),
     ("Mini Pan de Jamón", 10.00),
@@ -34,6 +40,8 @@ PRODUCTS = [
     ("Extra Queso + Tocineta", 1.00),
     ("Extra Guayaba + Queso", 1.00),
     ("Extra Triple relleno", 2.00),
+
+    # 2. PANES DULCES
     ("Dulce Piñita (6)", 8.50),
     ("Pack mini Pan de Leche (9)", 8.00),
     ("Pan de Guayaba", 4.50),
@@ -44,6 +52,8 @@ PRODUCTS = [
     ("Corazón de Piña (6)", 10.00),
     ("Piña & Coco (6)", 10.00),
     ("Pan Dulce de Coco (6)", 10.00),
+
+    # 3. ESPECIALIDADES Y ACOMPAÑANTES
     ("Cinnamon Roll Tradicional", 4.50),
     ("Cinnamon Rolls Pack de 2", 8.00),
     ("Cinnamon Rolls Pack de 8", 16.00),
@@ -56,31 +66,72 @@ PRODUCTS = [
     ("Topping Dulce de leche", 2.00),
     ("Topping Fresa", 2.00),
     ("Topping Chocolate", 2.00),
+
+    # 4. OTROS PRODUCTOS
     ("Panelitas San Joaquín (Pack 5 unidades)", 1.00),
     ("Pastelito individual (Incluye salsa)", 3.00),
     ("25 Mini Pastelitos surtidos (Incluye salsa)", 24.00),
     ("50 Mini Pastelitos surtidos (Incluye salsa)", 47.00),
     ("Arepitas de Yuca - Empaque 10 unidades", 12.00),
+
+    # 5. PANES ARTESANALES
     ("Pan Andino Regular", 14.00),
     ("Pan Andino con Talvina (Masa Madre)", 15.00),
     ("Pan Trenza", 15.00),
 ]
 
-PROMOTIONS = [{
-    "id": "promo_pan_queso_grande_16",
-    "name": 'Promo Pan de Queso Grande 16" — Piñita gratis',
-    "price": 20.00,
-    "description": 'Pan de queso grande 16" + 1 pack de Piñitas gratis',
-    "includes": "Incluye 1 pack de Piñitas gratis",
-    "active": True,
-}]
+PRODUCT_CATEGORIES = {}
+for name, price in PRODUCTS:
+    if name.startswith(("Extra ",)):
+        category = "Panes Salados"
+    elif name.startswith(("Dulce ", "Pack mini Pan de Leche", "Pan de Guayaba",
+                           "Golfeado", "Pack 6 Golfeados", "Pan de Queso Dulce",
+                           "Corazón de Piña", "Piña & Coco", "Pan Dulce de Coco")):
+        category = "Panes Dulces"
+    elif name.startswith(("Cinnamon", "Lemon", "Topping ")):
+        category = "Especialidades y Acompañantes"
+    elif name.startswith(("Panelitas", "Pastelito", "25 Mini", "50 Mini", "Arepitas")):
+        category = "Otros Productos"
+    else:
+        category = "Panes Salados"
+    PRODUCT_CATEGORIES[name] = category
 
+# Catálogo listo para una interfaz que quiera agrupar explícitamente por sección.
+PRODUCT_CATALOG = [
+    {"name": name, "price": price, "category": PRODUCT_CATEGORIES[name]}
+    for name, price in PRODUCTS
+]
+
+PROMOTIONS = [
+    {
+        "id": "promo_pan_queso_grande_16",
+        "name": 'Promo Pan de Queso Grande 16" — Piñita gratis',
+        "price": 20.00,
+        "description": 'Pan de queso grande 16" + 1 pack de Piñitas gratis',
+        "includes": "Incluye 1 pack de Piñitas gratis",
+        "active": True,
+    }
+]
+
+
+# ============================================================
+# BASE DE DATOS
+# ============================================================
 
 def db():
     c = sqlite3.connect(DB)
     c.row_factory = sqlite3.Row
     c.execute("PRAGMA foreign_keys = ON")
     return c
+
+
+def table_columns(c, table):
+    return {r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()}
+
+
+def ensure_column(c, table, column, definition):
+    if column not in table_columns(c, table):
+        c.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
 
 def init():
@@ -174,10 +225,27 @@ def init():
         notes TEXT DEFAULT '',
         FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS clients(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1
+    );
     """)
+
+    ensure_column(c, "orders", "is_test", "INTEGER NOT NULL DEFAULT 0")
+    ensure_column(c, "items", "promotion_id", "TEXT DEFAULT ''")
+    ensure_column(c, "items", "promotion_name", "TEXT DEFAULT ''")
+    ensure_column(c, "items", "promotion_description", "TEXT DEFAULT ''")
 
     now = datetime.now().isoformat()
 
+    # --------------------------------------------------------
+    # INVENTARIO — ingredientes. Papel film y papel de horno
+    # se trasladan a MATERIALES automáticamente.
+    # --------------------------------------------------------
     inventory_seed = [
         ("Harina", "King Arthur Bread Flour – Unbleached", "10 lb", 8.38, 6, 60, "lb", 0),
         ("Azúcar", "Domino Premium Pure Cane Granulated Sugar", "25 lb", 19.48, 0.5, 12.5, "lb", 0),
@@ -193,8 +261,6 @@ def init():
         ("Sal", "Morton Kosher Salt Flakes", "3 lb", 3.97, 0, 0, "lb", 0),
         ("Pasas", "Sun-Maid California Sun-Dried Raisins", "32 oz / 2 lb", 6.97, 0, 0, "oz", 0),
         ("Coco", "Great Value Organic Unsweetened Coconut Flakes", "7 oz / 198 g", 3.78, 0, 0, "g", 0),
-        ("Papel film", "Glad Cling'n Seal", "2 × 400 sq ft", 6.98, 0, 0, "sq ft", 0),
-        ("Papel para hornear", "Great Value Non-Stick Parchment Paper", "100 sq ft", 5.67, 0, 0, "sq ft", 0),
         ("Papelón / Panela", "Papelón (Panela) — presentación de la foto", "unidad", 0, 0, 0, "unidades", 3),
     ]
 
@@ -211,6 +277,64 @@ def init():
                 ) VALUES(?,?,?,?,?,?,?,?,1,?,?)
             """, row[:7] + (row[7], now, now))
 
+    # --------------------------------------------------------
+    # MOVER materiales existentes del inventario a Materiales.
+    # No se borra el registro: se conserva históricamente pero
+    # queda inactivo en inventario.
+    # --------------------------------------------------------
+    material_names = {"Papel film", "Papel para hornear"}
+
+    for name in material_names:
+        rows = c.execute(
+            "SELECT * FROM inventory WHERE category=? OR product LIKE ?",
+            (name, f"%{name}%")
+        ).fetchall()
+
+        # También cubre nombres exactos guardados en product.
+        for r in rows:
+            if r["active"] != 1:
+                continue
+            already = c.execute(
+                "SELECT id FROM materials WHERE product=? AND presentation=? LIMIT 1",
+                (r["product"], r["presentation"])
+            ).fetchone()
+            if not already:
+                c.execute("""
+                    INSERT INTO materials(
+                        category,product,presentation,purchase_price,current_qty,
+                        equivalent_qty,equivalent_unit,reorder_point,active,created_at,updated_at
+                    ) VALUES(?,?,?,?,?,?,?,?,1,?,?)
+                """, (
+                    "Materiales de trabajo", r["product"], r["presentation"],
+                    r["purchase_price"], r["current_qty"], r["equivalent_qty"],
+                    r["equivalent_unit"], r["reorder_point"], now, now
+                ))
+            c.execute(
+                "UPDATE inventory SET active=0,updated_at=? WHERE id=?",
+                (now, r["id"])
+            )
+
+    # Si los registros aún no existían en ninguna parte, créalos en Materiales.
+    materials_seed = [
+        ("Materiales de trabajo", "Glad Cling'n Seal", "2 × 400 sq ft", 6.98, 0, 0, "sq ft", 0),
+        ("Materiales de trabajo", "Great Value Non-Stick Parchment Paper", "100 sq ft", 5.67, 0, 0, "sq ft", 0),
+    ]
+    for row in materials_seed:
+        exists = c.execute(
+            "SELECT id FROM materials WHERE product=? AND presentation=? LIMIT 1",
+            (row[1], row[2])
+        ).fetchone()
+        if not exists:
+            c.execute("""
+                INSERT INTO materials(
+                    category,product,presentation,purchase_price,current_qty,
+                    equivalent_qty,equivalent_unit,reorder_point,active,created_at,updated_at
+                ) VALUES(?,?,?,?,?,?,?,?,1,?,?)
+            """, row + (now, now))
+
+    # --------------------------------------------------------
+    # RECETAS
+    # --------------------------------------------------------
     recipe_defs = [
         ("Pan Francés", "13 panes de 90 g", "350°F (180°C)", "18 min", "Prefermento + masa."),
         ("Pan de Leche (9 pancitos)", "9 pancitos aprox. 65 g", "350°F (180°C)", "15 a 20 min", "Versión rápida."),
@@ -349,7 +473,8 @@ def init():
             ("Leche", "243", "g", "43 g tangzhong + 200 g masa"),
             ("Azúcar", "150", "g", ""),
             ("Leche en polvo", "20", "g", ""),
-            ("Levadura instantánea", "8", "g", ""),
+            # CORRECCIÓN SOLICITADA: 6 g de levadura instantánea.
+            ("Levadura instantánea", "6", "g", ""),
             ("Mantequilla", "70", "g", ""),
             ("Huevo", "1", "unidad", "más 1 yema"),
             ("Esencia de piña", "2", "cucharadas", ""),
@@ -359,52 +484,115 @@ def init():
     }
 
     for r in recipe_defs:
-        exists = c.execute("SELECT id FROM recipes WHERE name=?", (r[0],)).fetchone()
-        if not exists:
-            cur = c.execute(
-                "INSERT INTO recipes(name,yield_text,oven_temp,bake_time,notes) VALUES(?,?,?,?,?)",
-                r
-            )
-            rid = cur.lastrowid
-            for item in recipe_ingredients.get(r[0], []):
-                c.execute(
-                    "INSERT INTO recipe_ingredients(recipe_id,ingredient_name,amount,unit,notes) VALUES(?,?,?,?,?)",
-                    (rid, *item)
-                )
+        c.execute("""
+            INSERT INTO recipes(name,yield_text,oven_temp,bake_time,notes,active)
+            VALUES(?,?,?,?,?,1)
+            ON CONFLICT(name) DO UPDATE SET
+                yield_text=excluded.yield_text,
+                oven_temp=excluded.oven_temp,
+                bake_time=excluded.bake_time,
+                notes=excluded.notes,
+                active=1
+        """, r)
 
-    if c.execute("SELECT COUNT(*) FROM promotions").fetchone()[0] == 0:
-        for p in PROMOTIONS:
-            c.execute(
-                "INSERT INTO promotions(id,name,price,description,includes,active) VALUES(?,?,?,?,?,?)",
-                (p["id"], p["name"], p["price"], p["description"], p["includes"], 1)
-            )
+        rid = c.execute("SELECT id FROM recipes WHERE name=?", (r[0],)).fetchone()["id"]
+        # Solo reemplazamos los ingredientes de estas recetas administradas.
+        c.execute("DELETE FROM recipe_ingredients WHERE recipe_id=?", (rid,))
+        for item in recipe_ingredients.get(r[0], []):
+            c.execute("""
+                INSERT INTO recipe_ingredients(
+                    recipe_id,ingredient_name,amount,unit,notes
+                ) VALUES(?,?,?,?,?)
+            """, (rid, *item))
+
+    # Asegurar que la promoción oficial exista y quede activa.
+    for p in PROMOTIONS:
+        c.execute("""
+            INSERT INTO promotions(id,name,price,description,includes,active)
+            VALUES(?,?,?,?,?,?)
+            ON CONFLICT(id) DO UPDATE SET
+                name=excluded.name,
+                price=excluded.price,
+                description=excluded.description,
+                includes=excluded.includes,
+                active=1
+        """, (
+            p["id"], p["name"], p["price"],
+            p["description"], p["includes"], 1
+        ))
+
+    # Cliente frecuente solicitado: queda disponible desde el primer arranque.
+    # Si ya existe, no se duplica.
+    c.execute("""
+        INSERT INTO clients(name,created_at,updated_at,active)
+        VALUES(?,?,?,1)
+        ON CONFLICT(name) DO UPDATE SET
+            updated_at=excluded.updated_at,
+            active=1
+    """, ("Carhil Brazon", now, now))
+
+    # Recuperar clientes que ya existen en pedidos históricos.
+    for r in c.execute(
+        "SELECT DISTINCT client FROM orders WHERE TRIM(client)<>''"
+    ).fetchall():
+        name = r["client"].strip()
+        c.execute("""
+            INSERT INTO clients(name,created_at,updated_at,active)
+            VALUES(?,?,?,1)
+            ON CONFLICT(name) DO UPDATE SET
+                updated_at=excluded.updated_at,
+                active=1
+        """, (name, now, now))
 
     c.commit()
     c.close()
 
 
+# ============================================================
+# PEDIDOS
+# ============================================================
+
 def serialize_order(c, row):
     items = [dict(x) for x in c.execute(
-        "SELECT * FROM items WHERE order_id=? ORDER BY id", (row["id"],)
+        "SELECT * FROM items WHERE order_id=? ORDER BY id",
+        (row["id"],)
     ).fetchall()]
     payments = [dict(x) for x in c.execute(
-        "SELECT * FROM payments WHERE order_id=? ORDER BY id", (row["id"],)
+        "SELECT * FROM payments WHERE order_id=? ORDER BY id",
+        (row["id"],)
     ).fetchall()]
+
     total = sum(float(i["qty"]) * float(i["unit_price"]) for i in items)
     paid = sum(float(p["amount"]) for p in payments)
-    return {
+
+    return SafeOrder({
         **dict(row),
         "items": items,
         "payments": payments,
         "total": total,
         "paid": paid,
         "balance": max(0, total - paid),
-    }
+    })
+
+
+def save_client(c, name):
+    name = (name or "").strip()
+    if not name:
+        return
+    now = datetime.now().isoformat()
+    c.execute("""
+        INSERT INTO clients(name,created_at,updated_at,active)
+        VALUES(?,?,?,1)
+        ON CONFLICT(name) DO UPDATE SET
+            updated_at=excluded.updated_at,
+            active=1
+    """, (name, now, now))
 
 
 @app.route("/")
 def home():
     c = db()
+
     rows = c.execute(
         "SELECT * FROM orders ORDER BY delivery_date, id DESC"
     ).fetchall()
@@ -414,6 +602,10 @@ def home():
         "SELECT * FROM inventory WHERE active=1 ORDER BY category,product"
     ).fetchall()]
 
+    materials = [dict(r) for r in c.execute(
+        "SELECT * FROM materials WHERE active=1 ORDER BY category,product"
+    ).fetchall()]
+
     recipes = []
     for rr in c.execute(
         "SELECT * FROM recipes WHERE active=1 ORDER BY name"
@@ -421,19 +613,22 @@ def home():
         rd = dict(rr)
         rd["ingredients"] = [
             dict(x) for x in c.execute(
-                "SELECT ingredient_name,amount,unit,notes FROM recipe_ingredients "
-                "WHERE recipe_id=? ORDER BY id", (rr["id"],)
+                "SELECT ingredient_name,amount,unit,notes "
+                "FROM recipe_ingredients WHERE recipe_id=? ORDER BY id",
+                (rr["id"],)
             ).fetchall()
         ]
         recipes.append(rd)
 
-    promotions = [
-        dict(x) for x in c.execute(
-            "SELECT * FROM promotions ORDER BY name"
-        ).fetchall()
-    ]
+    promotions = [dict(x) for x in c.execute(
+        "SELECT * FROM promotions WHERE active=1 ORDER BY name"
+    ).fetchall()]
 
-    today = datetime.now().strftime("%Y-%m-%d")
+    clients = [dict(x) for x in c.execute(
+        "SELECT * FROM clients WHERE active=1 ORDER BY name COLLATE NOCASE"
+    ).fetchall()]
+
+    today = datetime.now().date().isoformat()
     active = [o for o in orders if o["status"] not in ("Entregado", "Cancelado")]
     finalized = [o for o in orders if o["status"] in ("Entregado", "Cancelado")]
 
@@ -441,28 +636,32 @@ def home():
         o["total"] for o in orders
         if o["status"] == "Entregado" and o["delivery_date"] == today
     )
-    pending_balance = sum(o["balance"] for o in active)
-    pending_count = sum(1 for o in active if o["status"] == "Pendiente de elaborar")
-    ready_count = sum(1 for o in active if o["status"] == "Listo para entregar")
+    pending_balance = sum(o["balance"] for o in active if o["balance"] > 0)
+    ready_count = sum(
+        1 for o in active if o["status"] == "Listo para entregar"
+    )
 
     dashboard = {
         "sales_today": sales_today,
-        "pending_balance": pending_balance,
-        "pending_count": pending_count,
+        "pending_count": len(active),
         "ready_count": ready_count,
+        "pending_balance": pending_balance,
     }
 
     c.close()
+
     return render_template(
         "index.html",
         products=PRODUCTS,
+        product_catalog=PRODUCT_CATALOG,
         promotions=promotions,
         orders=orders,
         active_orders=active,
         finalized_orders=finalized,
         inventory=inventory,
+        materials=materials,
         recipes=recipes,
-        materials=[],
+        clients=clients,
         dashboard=dashboard,
     )
 
@@ -480,56 +679,78 @@ def save_order(order_id=None):
     payments = data.get("payments") or []
 
     if not client or not delivery_date:
-        return jsonify({"ok": False, "error": "Cliente y fecha son obligatorios"}), 400
+        return jsonify({
+            "ok": False,
+            "error": "Cliente y fecha son obligatorios"
+        }), 400
 
     c = db()
+
     try:
         if order_id is None:
-            cur = c.execute(
-                "INSERT INTO orders(client,delivery_date,status,notes,created_at,is_test) VALUES(?,?,?,?,?,?)",
-                (client, delivery_date, status, notes, datetime.now().isoformat(), is_test)
-            )
+            cur = c.execute("""
+                INSERT INTO orders(
+                    client,delivery_date,status,notes,created_at,is_test
+                ) VALUES(?,?,?,?,?,?)
+            """, (
+                client, delivery_date, status, notes,
+                datetime.now().isoformat(), is_test
+            ))
             order_id = cur.lastrowid
         else:
-            exists = c.execute("SELECT id FROM orders WHERE id=?", (order_id,)).fetchone()
+            exists = c.execute(
+                "SELECT id FROM orders WHERE id=?",
+                (order_id,)
+            ).fetchone()
             if not exists:
-                return jsonify({"ok": False, "error": "Pedido no encontrado"}), 404
-            c.execute(
-                "UPDATE orders SET client=?,delivery_date=?,status=?,notes=?,is_test=? WHERE id=?",
-                (client, delivery_date, status, notes, is_test, order_id)
-            )
+                return jsonify({
+                    "ok": False,
+                    "error": "Pedido no encontrado"
+                }), 404
+
+            c.execute("""
+                UPDATE orders
+                SET client=?,delivery_date=?,status=?,notes=?,is_test=?
+                WHERE id=?
+            """, (
+                client, delivery_date, status, notes, is_test, order_id
+            ))
             c.execute("DELETE FROM items WHERE order_id=?", (order_id,))
             c.execute("DELETE FROM payments WHERE order_id=?", (order_id,))
+
+        save_client(c, client)
 
         for item in items:
             product = (item.get("product") or "").strip()
             if not product:
                 continue
-            c.execute(
-                "INSERT INTO items(order_id,product,qty,unit_price,promotion_id,promotion_name,promotion_description) "
-                "VALUES(?,?,?,?,?,?,?)",
-                (
-                    order_id,
-                    product,
-                    int(item.get("qty") or 1),
-                    float(item.get("unit_price") or 0),
-                    item.get("promotion_id") or "",
-                    item.get("promotion_name") or "",
-                    item.get("promotion_description") or "",
-                )
-            )
+            c.execute("""
+                INSERT INTO items(
+                    order_id,product,qty,unit_price,
+                    promotion_id,promotion_name,promotion_description
+                ) VALUES(?,?,?,?,?,?,?)
+            """, (
+                order_id,
+                product,
+                int(item.get("qty") or 1),
+                float(item.get("unit_price") or 0),
+                item.get("promotion_id") or "",
+                item.get("promotion_name") or "",
+                item.get("promotion_description") or "",
+            ))
 
         for payment in payments:
             method = (payment.get("method") or "Otro").strip()
             amount = max(0, float(payment.get("amount") or 0))
             if amount:
-                c.execute(
-                    "INSERT INTO payments(order_id,method,amount) VALUES(?,?,?)",
-                    (order_id, method, amount)
-                )
+                c.execute("""
+                    INSERT INTO payments(order_id,method,amount)
+                    VALUES(?,?,?)
+                """, (order_id, method, amount))
 
         c.commit()
         return jsonify({"ok": True, "id": order_id})
+
     except Exception as exc:
         c.rollback()
         return jsonify({"ok": False, "error": str(exc)}), 500
@@ -546,31 +767,172 @@ def delete_order(order_id):
     return jsonify({"ok": True})
 
 
+# ============================================================
+# CLIENTES — AUTOCOMPLETADO / HISTORIAL / PEDIDO REPETIBLE
+# ============================================================
+
 @app.get("/clients")
 def clients():
     q = (request.args.get("q") or "").strip()
+
     c = db()
-    rows = c.execute(
-        "SELECT DISTINCT client FROM orders WHERE client LIKE ? COLLATE NOCASE "
-        "ORDER BY client LIMIT 10", ((q + "%") if q else "%",)
-    ).fetchall()
+
+    if q:
+        rows = c.execute("""
+            SELECT id,name
+            FROM clients
+            WHERE active=1 AND name LIKE ? COLLATE NOCASE
+            ORDER BY name COLLATE NOCASE
+            LIMIT 20
+        """, (q + "%",)).fetchall()
+    else:
+        rows = c.execute("""
+            SELECT id,name
+            FROM clients
+            WHERE active=1
+            ORDER BY name COLLATE NOCASE
+            LIMIT 50
+        """).fetchall()
+
     result = []
+
     for row in rows:
-        order = c.execute(
-            "SELECT id FROM orders WHERE client=? AND status!='Cancelado' "
-            "ORDER BY delivery_date DESC,id DESC LIMIT 1", (row["client"],)
-        ).fetchone()
+        latest = c.execute("""
+            SELECT id,delivery_date,status
+            FROM orders
+            WHERE client=? AND status!='Cancelado'
+            ORDER BY delivery_date DESC,id DESC
+            LIMIT 1
+        """, (row["name"],)).fetchone()
+
         items = []
-        if order:
-            items = [dict(x) for x in c.execute(
-                "SELECT product,qty,unit_price FROM items "
-                "WHERE order_id=? AND (promotion_id='' OR promotion_id IS NULL)",
-                (order["id"],)
-            ).fetchall()]
-        result.append({"client": row["client"], "items": items})
+        if latest:
+            items = [dict(x) for x in c.execute("""
+                SELECT product,qty,unit_price,
+                       promotion_id,promotion_name,promotion_description
+                FROM items
+                WHERE order_id=?
+                ORDER BY id
+            """, (latest["id"],)).fetchall()]
+
+        result.append({
+            "id": row["id"],
+            "client": row["name"],
+            "last_order_id": latest["id"] if latest else None,
+            "last_order_date": latest["delivery_date"] if latest else None,
+            "last_status": latest["status"] if latest else None,
+            "items": items,
+        })
+
     c.close()
     return jsonify(result)
 
+
+@app.get("/clients/<int:client_id>")
+def get_client(client_id):
+    c = db()
+    row = c.execute(
+        "SELECT * FROM clients WHERE id=? AND active=1",
+        (client_id,)
+    ).fetchone()
+
+    if not row:
+        c.close()
+        return jsonify({"ok": False, "error": "Cliente no encontrado"}), 404
+
+    orders = []
+    for o in c.execute("""
+        SELECT * FROM orders
+        WHERE client=?
+        ORDER BY delivery_date DESC,id DESC
+    """, (row["name"],)).fetchall():
+        orders.append(dict(serialize_order(c, o)))
+
+    result = {
+        "client": dict(row),
+        "orders": orders,
+    }
+
+    c.close()
+    return jsonify(result)
+
+
+@app.get("/clients/<int:client_id>/repeat")
+def repeat_client_order(client_id):
+    """Devuelve el último pedido del cliente listo para precargar."""
+    c = db()
+    row = c.execute(
+        "SELECT name FROM clients WHERE id=? AND active=1",
+        (client_id,)
+    ).fetchone()
+
+    if not row:
+        c.close()
+        return jsonify({"ok": False, "error": "Cliente no encontrado"}), 404
+
+    order = c.execute("""
+        SELECT * FROM orders
+        WHERE client=? AND status!='Cancelado'
+        ORDER BY delivery_date DESC,id DESC
+        LIMIT 1
+    """, (row["name"],)).fetchone()
+
+    if not order:
+        c.close()
+        return jsonify({
+            "ok": True,
+            "client": row["name"],
+            "items": [],
+            "message": "El cliente todavía no tiene pedidos."
+        })
+
+    serialized = serialize_order(c, order)
+    c.close()
+
+    return jsonify({
+        "ok": True,
+        "client": row["name"],
+        "order_id": serialized["id"],
+        "items": serialized["items"],
+        "notes": serialized.get("notes", ""),
+    })
+
+
+@app.post("/clients")
+def create_client():
+    data = request.get_json() or {}
+    name = (data.get("name") or data.get("client") or "").strip()
+
+    if not name:
+        return jsonify({
+            "ok": False,
+            "error": "El nombre del cliente es obligatorio"
+        }), 400
+
+    c = db()
+    now = datetime.now().isoformat()
+
+    c.execute("""
+        INSERT INTO clients(name,created_at,updated_at,active)
+        VALUES(?,?,?,1)
+        ON CONFLICT(name) DO UPDATE SET
+            updated_at=excluded.updated_at,
+            active=1
+    """, (name, now, now))
+
+    c.commit()
+    row = c.execute(
+        "SELECT * FROM clients WHERE name=? COLLATE NOCASE",
+        (name,)
+    ).fetchone()
+    c.close()
+
+    return jsonify({"ok": True, "client": dict(row)})
+
+
+# ============================================================
+# PROMOCIONES
+# ============================================================
 
 @app.get("/promotions")
 def get_promotions():
@@ -586,16 +948,27 @@ def get_promotions():
 def create_promotion():
     data = request.get_json() or {}
     name = (data.get("name") or "").strip()
+
     if not name:
         return jsonify({"ok": False}), 400
+
     pid = "promo_" + str(abs(hash(name + datetime.now().isoformat())))
+
     c = db()
-    c.execute(
-        "INSERT INTO promotions(id,name,price,description,includes,active) VALUES(?,?,?,?,?,1)",
-        (pid, name, float(data.get("price") or 0), data.get("description", ""), data.get("includes", ""))
-    )
+    c.execute("""
+        INSERT INTO promotions(
+            id,name,price,description,includes,active
+        ) VALUES(?,?,?,?,?,1)
+    """, (
+        pid,
+        name,
+        float(data.get("price") or 0),
+        data.get("description", ""),
+        data.get("includes", "")
+    ))
     c.commit()
     c.close()
+
     return jsonify({"ok": True, "id": pid})
 
 
@@ -603,17 +976,20 @@ def create_promotion():
 def update_promotion(pid):
     data = request.get_json() or {}
     c = db()
-    c.execute(
-        "UPDATE promotions SET name=?,price=?,description=?,includes=?,active=? WHERE id=?",
-        (
-            (data.get("name") or "").strip(),
-            float(data.get("price") or 0),
-            data.get("description", ""),
-            data.get("includes", ""),
-            1 if data.get("active", True) else 0,
-            pid,
-        )
-    )
+
+    c.execute("""
+        UPDATE promotions
+        SET name=?,price=?,description=?,includes=?,active=?
+        WHERE id=?
+    """, (
+        (data.get("name") or "").strip(),
+        float(data.get("price") or 0),
+        data.get("description", ""),
+        data.get("includes", ""),
+        1 if data.get("active", True) else 0,
+        pid,
+    ))
+
     c.commit()
     c.close()
     return jsonify({"ok": True})
@@ -622,30 +998,45 @@ def update_promotion(pid):
 @app.delete("/promotions/<pid>")
 def deactivate_promotion(pid):
     c = db()
-    c.execute("UPDATE promotions SET active=0 WHERE id=?", (pid,))
+    c.execute(
+        "UPDATE promotions SET active=0 WHERE id=?",
+        (pid,)
+    )
     c.commit()
     c.close()
     return jsonify({"ok": True})
 
 
+# ============================================================
+# RECETAS
+# ============================================================
+
 @app.get("/recipes")
 def get_recipes():
     c = db()
     result = []
+
     for rr in c.execute(
         "SELECT * FROM recipes WHERE active=1 ORDER BY name"
     ).fetchall():
         rd = dict(rr)
         rd["ingredients"] = [
-            dict(x) for x in c.execute(
-                "SELECT ingredient_name,amount,unit,notes FROM recipe_ingredients "
-                "WHERE recipe_id=? ORDER BY id", (rr["id"],)
-            ).fetchall()
+            dict(x) for x in c.execute("""
+                SELECT ingredient_name,amount,unit,notes
+                FROM recipe_ingredients
+                WHERE recipe_id=?
+                ORDER BY id
+            """, (rr["id"],)).fetchall()
         ]
         result.append(rd)
+
     c.close()
     return jsonify(result)
 
+
+# ============================================================
+# INVENTARIO
+# ============================================================
 
 def inventory_payload(data):
     return (
@@ -673,16 +1064,23 @@ def get_inventory():
 @app.post("/inventory")
 def create_inventory():
     data = request.get_json() or {}
-    category, product, presentation, price, current, equivalent, unit, reorder = inventory_payload(data)
+    values = inventory_payload(data)
+    category, product = values[0], values[1]
+
     if not category or not product:
         return jsonify({"ok": False}), 400
+
     now = datetime.now().isoformat()
     c = db()
-    c.execute(
-        "INSERT INTO inventory(category,product,presentation,purchase_price,current_qty,equivalent_qty,equivalent_unit,reorder_point,active,created_at,updated_at) "
-        "VALUES(?,?,?,?,?,?,?,?,1,?,?)",
-        (category, product, presentation, price, current, equivalent, unit, reorder, now, now)
-    )
+
+    c.execute("""
+        INSERT INTO inventory(
+            category,product,presentation,purchase_price,current_qty,
+            equivalent_qty,equivalent_unit,reorder_point,active,
+            created_at,updated_at
+        ) VALUES(?,?,?,?,?,?,?,?,1,?,?)
+    """, values + (now, now))
+
     c.commit()
     c.close()
     return jsonify({"ok": True})
@@ -691,14 +1089,22 @@ def create_inventory():
 @app.put("/inventory/<int:iid>")
 def update_inventory(iid):
     data = request.get_json() or {}
-    category, product, presentation, price, current, equivalent, unit, reorder = inventory_payload(data)
+    values = inventory_payload(data)
+    category, product = values[0], values[1]
+
     if not category or not product:
         return jsonify({"ok": False}), 400
+
     c = db()
-    c.execute(
-        "UPDATE inventory SET category=?,product=?,presentation=?,purchase_price=?,current_qty=?,equivalent_qty=?,equivalent_unit=?,reorder_point=?,updated_at=? WHERE id=?",
-        (category, product, presentation, price, current, equivalent, unit, reorder, datetime.now().isoformat(), iid)
-    )
+
+    c.execute("""
+        UPDATE inventory
+        SET category=?,product=?,presentation=?,purchase_price=?,
+            current_qty=?,equivalent_qty=?,equivalent_unit=?,
+            reorder_point=?,updated_at=?
+        WHERE id=?
+    """, values + (datetime.now().isoformat(), iid))
+
     c.commit()
     c.close()
     return jsonify({"ok": True})
@@ -716,6 +1122,10 @@ def delete_inventory(iid):
     return jsonify({"ok": True})
 
 
+# ============================================================
+# MATERIALES
+# ============================================================
+
 @app.get("/materials")
 def get_materials():
     c = db()
@@ -729,16 +1139,23 @@ def get_materials():
 @app.post("/materials")
 def create_material():
     data = request.get_json() or {}
-    category, product, presentation, price, current, equivalent, unit, reorder = inventory_payload(data)
+    values = inventory_payload(data)
+    category, product = values[0], values[1]
+
     if not category or not product:
         return jsonify({"ok": False}), 400
+
     now = datetime.now().isoformat()
     c = db()
-    c.execute(
-        "INSERT INTO materials(category,product,presentation,purchase_price,current_qty,equivalent_qty,equivalent_unit,reorder_point,active,created_at,updated_at) "
-        "VALUES(?,?,?,?,?,?,?,?,1,?,?)",
-        (category, product, presentation, price, current, equivalent, unit, reorder, now, now)
-    )
+
+    c.execute("""
+        INSERT INTO materials(
+            category,product,presentation,purchase_price,current_qty,
+            equivalent_qty,equivalent_unit,reorder_point,active,
+            created_at,updated_at
+        ) VALUES(?,?,?,?,?,?,?,?,1,?,?)
+    """, values + (now, now))
+
     c.commit()
     c.close()
     return jsonify({"ok": True})
@@ -747,14 +1164,22 @@ def create_material():
 @app.put("/materials/<int:iid>")
 def update_material(iid):
     data = request.get_json() or {}
-    category, product, presentation, price, current, equivalent, unit, reorder = inventory_payload(data)
+    values = inventory_payload(data)
+    category, product = values[0], values[1]
+
     if not category or not product:
         return jsonify({"ok": False}), 400
+
     c = db()
-    c.execute(
-        "UPDATE materials SET category=?,product=?,presentation=?,purchase_price=?,current_qty=?,equivalent_qty=?,equivalent_unit=?,reorder_point=?,updated_at=? WHERE id=?",
-        (category, product, presentation, price, current, equivalent, unit, reorder, datetime.now().isoformat(), iid)
-    )
+
+    c.execute("""
+        UPDATE materials
+        SET category=?,product=?,presentation=?,purchase_price=?,
+            current_qty=?,equivalent_qty=?,equivalent_unit=?,
+            reorder_point=?,updated_at=?
+        WHERE id=?
+    """, values + (datetime.now().isoformat(), iid))
+
     c.commit()
     c.close()
     return jsonify({"ok": True})
@@ -772,8 +1197,11 @@ def delete_material(iid):
     return jsonify({"ok": True})
 
 
-init()
+# ============================================================
+# EJECUCIÓN LOCAL / RENDER
+# ============================================================
 
+init()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
